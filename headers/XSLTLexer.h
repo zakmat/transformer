@@ -10,6 +10,8 @@
 
 #include "XMLLexer.h"
 
+//wiele się zmieni, nowa koncepcja zakłada przeniesienie analizy leksykalnej do analizatora xml
+
 namespace parsingXSLT {
 
 /*
