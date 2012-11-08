@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xsl:template match="/">
+	<html><head/><body>
+	Tests of addition in XPath 1.0
+	<br/>
+	9 + 3 =	<xsl:value-of select="9 + 3"/>
+	<br/>
+	9 + 3.8 = <xsl:value-of select="9 + 3.8"/>
+	<br/>
+	9 + '4' = <xsl:value-of select="9 + '4'"/>
+	<br/>
+	9 + 'Q' = <xsl:value-of select="9 + 'Q'"/>
+	<br/>
+	9 + true() =	<xsl:value-of select="9 + (1=1)"/>
+	<br/>
+	9 + false() = <xsl:value-of select="9 + (1!=1)"/>
+	<br/>
+	wszystkie ceny w katalogu mniejsze od 13
+	<xsl:value-of select="not(catalog/cd/price &gt; 13)"/>
+	<br/>
+	wszystkie ceny w katalogu mniejsze od 11
+	<xsl:value-of select="not(catalog/cd/price &gt; 11)"/>
+	</body></html>
+</xsl:template>
+</xsl:stylesheet>
