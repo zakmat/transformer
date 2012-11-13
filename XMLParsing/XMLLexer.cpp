@@ -46,6 +46,8 @@ Token XMLLexer::matchNextToken() {
 	case '>':	return Token(CLOSETAG,String(1,c));
 	case '?':	return recognizeMarkupEnding(c);
 	case '/':	return recognizeMarkupEnding(c);
+	case ']':  return recognizeMarkupEnding(c);
+	case '-':  return recognizeMarkupEnding(c);
 	case '=':	return Token(EQUALOP,String("="));
 	case ':':	return Token(COLON,String(":"));
 	case '"': 	while((c=getChar())!='"') {
@@ -56,15 +58,20 @@ Token XMLLexer::matchNextToken() {
 	}
 }
 
+
+//TODO write a test case to check if CDATA is working well
+//TODO write a test case if comment is not screwed up
 Token XMLLexer::recognizeMarkupOpening(Char c2) {
 	String seqSoFar;
 	switch(c2) {
 	case '/':	return Token(OPENENDTAG,String("</"));
 	case '?':	return Token(OPENPI,String("<?"));
-	case '!':   seqSoFar.append(1, getChar());
-				seqSoFar.append(1, getChar());
+	case '!':   seqSoFar.append(getChars(2));
 				if(seqSoFar==String("--"))
 					return Token(COMMENT,matchComment());
+				seqSoFar.append(getChars(5));
+				if(seqSoFar==String("[CDATA["))
+					return Token(OPENCDATA,String("<![CDATA["));
 				else {
 					rollbackChar(seqSoFar);
 					return Token(OTHER, String("<!"));
@@ -76,15 +83,28 @@ Token XMLLexer::recognizeMarkupOpening(Char c2) {
 
 Token XMLLexer::recognizeMarkupEnding(Char c) {
 	Char c2 = getChar();
-	if(c2!='>') {
+	if (c2 == '>') {
+		if(c=='/')
+			return Token(ENDEMPTYELEM,String("/>"));
+		else if(c=='?')
+			return Token(ENDPI,String("?>"));
+		else // ']>'  niekompletny ENDCDATA
+			rollbackChar(c2);
+			Error("Znacznik zamykajacy niekompletny");
+			return Token(OTHER,String(1,c));
+	}
+	Char c3 = getChar();
+
+	if (c == ']' && c2 == ']' && c3 == '>')
+		return Token(ENDCDATA,String("]]>"));
+	else if(c == '-' && c2 == '-' && c3 == '>')
+		return Token(ENDCOMMENT, String("-->"));
+	else { //(c2!=']') {
 		rollbackChar(c2);
+		rollbackChar(c3);
 		Error("Znacznik zamykajacy niekompletny");
 		return Token(OTHER,String(1,c));
 	}
-	else if(c=='/')
-		return Token(ENDEMPTYELEM,String("/>"));
-	else //c=='?'
-		return Token(ENDPI,String("?>"));
 }
 
 String XMLLexer::matchComment() {

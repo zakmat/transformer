@@ -31,6 +31,7 @@ protected:
 	void rollbackChar(Char c);
 	void rollbackChar(String & s);
 	Char getChar();
+	String getChars(int number);
 	bool isWhiteSpace(const Char c) const;
 	bool isLetter(const Char c) const;
 	bool isDigit(const Char c) const;

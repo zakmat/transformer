@@ -79,7 +79,6 @@ public:
 	NodeVec getAttrByName(const String& n) const;
 	NodeVec getAllAttrs() const;
 
-
 };
 
 class AttributeNode : public Node{
