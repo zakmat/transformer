@@ -45,6 +45,8 @@ void Transformer::loadXMLSource(char * filename) {
 	std::cout << "Zakonczono wczytywanie dokumentu zrodlowego" << std::endl;
 }
 
+
+//od teraz loadStyleSheet będzie w pierwszej kolejności korzystał właśnie z fcji loadXML
 void Transformer::loadStyleSheet(char * filename) {
 	this->stylesfname = filename;
 
