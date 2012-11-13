@@ -31,8 +31,6 @@ class XPathExpression : public ParsedObject{
 	XPathSymbol type;
 
 
-	bool compareNumbers(double a, double b) const;
-	bool compareStrings(const String& a, const String& b) const;
 
 	/*
 	 * ponizsze 4 funkcje sa wykorzystywane przy ustalaniu typu wyrazenia zlozonego
@@ -42,6 +40,11 @@ class XPathExpression : public ParsedObject{
 	bool isArithmeticExpr() const;
 	bool isEqualityExpr() const;
 	bool isRelationalExpr() const;
+
+protected:
+	bool compareNumbers(double a, double b) const;
+	bool compareStrings(const String& a, const String& b) const;
+
 
 public:
 	//W XPath w wersji 1.0 wystepuja 4 podstawowe typy: boolean, string, number i nodeset
