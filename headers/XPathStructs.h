@@ -135,6 +135,8 @@ public:
 	bool isBooleanExpr() const {return false;};
 	bool isLocationExpr() const{return true;};
 
+	bool compareWithOtherExpr(XPathExpression * other, xmlNode * contextNode) const;
+
 	//funkcja sprawdza czy wezel kontekstowy mozna dopasowac do sciezki
 	//(uzywana jest podczas dopasowywania template'ow)
 	bool match(xmlNode * contextNode) const;

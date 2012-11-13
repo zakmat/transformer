@@ -123,40 +123,11 @@ bool XPathExpression::boolean(xmlNode * contextNode) const {
 		}
 		//ponizsze 2 przypadki obsluguja sytuacje gry jeden z operandow jest zbiorem wezlow
 		//wowczas porownanie nastepuje z kazdym z wezlow z osobna (wezly konwertowane sa na liczby)
-		else if(left->isLocationExpr()) {
-
-			XPathExpression *other;
-			XPathLocationExpression * ns;
-			//ustalamy ktory jest ktory
-
-			ns = (XPathLocationExpression*)left;	other = right;
-			double num = other->number(contextNode);
-			NodeVec result = ns->evaluate(contextNode);
-
-			for(NodeVec::iterator it = result.begin(); it!=result.end(); it++)
-				if(compareNumbers((*it)->numberValue(),num))
-					return true;
-
-			return false;
-
-		}
-		else {
-			XPathExpression *other;
-			XPathLocationExpression * ns;
-
-
-			ns = (XPathLocationExpression*)right; other = left;
-
-			double num = other->number(contextNode);
-			NodeVec result = ns->evaluate(contextNode);
-
-			for(NodeVec::iterator it = result.begin(); it!=result.end(); it++)
-				if(compareNumbers(num,(*it)->numberValue()))
-					return true;
-
-			return false;
-
-		}
+		else if(left->isLocationExpr())
+			return ((XPathLocationExpression*)left)->compareWithOtherExpr(right, contextNode);
+		else
+			return ((XPathLocationExpression*)right)->compareWithOtherExpr(left, contextNode);
+			//TODO napisać test case w którym tylko jeden z operandów jest zbiorem ścieżek
 	}
 	if(isEqualityExpr()) {
 		/*
@@ -297,7 +268,6 @@ double XPathNegationExpression::number(xmlNode * contextNode) const {
 bool XPathNumericExpression::boolean(xmlNode * contextNode) const {
 	double d = getNumericValue(value);
 	return !std::isnan(d) && d!=0.0;
-
 }
 
 String XPathNumericExpression::string(xmlNode * contextNode) const {
@@ -337,6 +307,17 @@ double XPathLocationExpression::number(xmlNode * contextNode) const {
 	return getNumericValue(string(contextNode));
 }
 
+bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, xmlNode * contextNode) const {
+	double num = other->number(contextNode);
+	NodeVec result = this->evaluate(contextNode);
+
+	for(NodeVec::iterator it = result.begin(); it!=result.end(); it++)
+		if(compareNumbers((*it)->numberValue(),num))
+			return true;
+
+	return false;
+}
+
 bool XPathLocationExpression::match(xmlNode * contextNode) const {
 	for(std::vector<XPath>::const_iterator it=paths.begin(); it!=paths.end(); it++) {
 		if(it->match(contextNode))
@@ -372,15 +353,6 @@ NodeVec XPathLocationExpression::mergeSets(const NodeVec& v1, const NodeVec& v2)
 	NodeVec::iterator it;
 	it = std::set_union(v1.begin(),v1.end(),v2.begin(),v2.end(),ret.begin(),comp);
 	ret.resize(it-ret.begin());
-	//	if(ret.size()==26) {
-	//		std::cout << "jestem w fcji mergeSorts v1\n\n";
-	//		print2(v1);
-	//		std::cout << "jestem w fcji mergeSorts v2\n\n";
-	//		print2(v2);
-	//		std::cout << "jestem w fcji mergeSorts ret\n\n";
-	//		print2(ret);
-	//		NodeVec a;
-	//	}
 
 	return ret;
 }
