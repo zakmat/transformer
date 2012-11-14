@@ -15,7 +15,7 @@ bool XMLLexer::isWhiteSpaceChar(const Char c) const {
 }
 
 bool XMLLexer::isCharData(const Char c) const {
-	return isalnum(c) || c == '-' || c == ':';
+	return isalnum(c);// || c == '-' || c == ':';
 }
 
 Token XMLLexer::matchNextToken() {
@@ -37,17 +37,14 @@ Token XMLLexer::matchNextToken() {
 		do {
 			seqSoFar.append(1,c);
 			c = getChar();
-		} while(isCharData(c)||c=='-');
+		} while(isCharData(c)/*||c=='-'*/);
 		rollbackChar(c);
 		return Token(ID,seqSoFar);
 	}
+	else if((String(">?/]-")).find(c)<5)
+		return recognizeMarkupEnding(c);
 	switch(c) {
 	case '<':	return recognizeMarkupOpening(getChar());
-	case '>':	return Token(CLOSETAG,String(1,c));
-	case '?':	return recognizeMarkupEnding(c);
-	case '/':	return recognizeMarkupEnding(c);
-	case ']':  return recognizeMarkupEnding(c);
-	case '-':  return recognizeMarkupEnding(c);
 	case '=':	return Token(EQUALOP,String("="));
 	case ':':	return Token(COLON,String(":"));
 	case '"': 	while((c=getChar())!='"') {
@@ -68,7 +65,7 @@ Token XMLLexer::recognizeMarkupOpening(Char c2) {
 	case '?':	return Token(OPENPI,String("<?"));
 	case '!':   seqSoFar.append(getChars(2));
 				if(seqSoFar==String("--"))
-					return Token(COMMENT,matchComment());
+					return Token(OPENCOMMENT,String("<!--"));
 				seqSoFar.append(getChars(5));
 				if(seqSoFar==String("[CDATA["))
 					return Token(OPENCDATA,String("<![CDATA["));
@@ -82,16 +79,15 @@ Token XMLLexer::recognizeMarkupOpening(Char c2) {
 }
 
 Token XMLLexer::recognizeMarkupEnding(Char c) {
+	if (c == '>')
+		return Token(CLOSETAG,String(">"));
+
 	Char c2 = getChar();
 	if (c2 == '>') {
 		if(c=='/')
 			return Token(ENDEMPTYELEM,String("/>"));
 		else if(c=='?')
 			return Token(ENDPI,String("?>"));
-		else // ']>'  niekompletny ENDCDATA
-			rollbackChar(c2);
-			Error("Znacznik zamykajacy niekompletny");
-			return Token(OTHER,String(1,c));
 	}
 	Char c3 = getChar();
 
@@ -99,7 +95,10 @@ Token XMLLexer::recognizeMarkupEnding(Char c) {
 		return Token(ENDCDATA,String("]]>"));
 	else if(c == '-' && c2 == '-' && c3 == '>')
 		return Token(ENDCOMMENT, String("-->"));
-	else { //(c2!=']') {
+	else if(c == '-') {
+	  return Token(MINUS,String(1,c));
+	}
+	else {  //(c2!=']') {
 		rollbackChar(c2);
 		rollbackChar(c3);
 		Error("Znacznik zamykajacy niekompletny");

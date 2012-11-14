@@ -31,7 +31,7 @@ class XMLParser: public IParser {
 	TextNode * Plain();
 
 	CommentNode * Comment();
-	CommentNode * CDSect();
+	CommentNode * CData();
 	String Literal();
 protected:
 

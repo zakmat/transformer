@@ -2,7 +2,7 @@
 CXX = g++
 
 HEADERS = headers
-FLAGS   = -Wall -pedantic
+FLAGS   = -g -Wall -pedantic
 
 
 CXXFLAGS= ${FLAGS} -I${HEADERS}

@@ -15,7 +15,7 @@
 class StringSource: public ISource {
 	std::vector<String> errors;
 	String sequence;
-	int pos;
+	unsigned pos;
 public:
 	String printPos() const;
 	void Error(String msg);

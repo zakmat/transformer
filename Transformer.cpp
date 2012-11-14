@@ -33,7 +33,10 @@ void Transformer::loadXMLSource(char * filename) {
 	ILexer * xmllex = new parsingXML::XMLLexer(xmldoc);
 	IParser * xmlparser = new parsingXML::XMLParser(xmllex);
 
+	std::cout << "Rozpoczeto parsowanie dokumentu zrodlowego" << std::endl;
+
 	ParsedObject * pt = xmlparser->startParsing();
+	std::cout << "Zakonczono parsowanie dokumentu zrodlowego" << std::endl;
 
 	source = (parsingXML::XMLTree *) pt;
 	sourceErrsDetected = xmldoc->countErrors();

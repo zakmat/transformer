@@ -95,10 +95,14 @@ String XMLParser::Name() {
 	String nameSoFar;
 	accept(ID);
 	nameSoFar.append(accepted.lexeme);
+	if(symbol==MINUS) {
+		accept(MINUS);
+	    nameSoFar.append("-");
+	}
 	if(symbol==COLON) {
 		accept(COLON);
 		accept(ID);
-		nameSoFar.append(1,':');
+		nameSoFar.append(":");
 		nameSoFar.append(accepted.lexeme);
 	}
 	return nameSoFar;
@@ -145,16 +149,36 @@ TextNode * XMLParser::Plain() {
 		return 0;
 }
 
+//TODO sprawdzic w xml-reference ktore znaczniki sa zabronione w commencie,
+//poki co zjada wszystko az do napotkania konca komentarza
 CommentNode * XMLParser::Comment() {
-	accept(COMMENT);
-	return new CommentNode(accepted.lexeme);
+	accept(OPENCOMMENT);
+		String comment;
+		while(symbol!=ENDCOMMENT) {
+			accept(symbol);
+			comment.append(accepted.lexeme);
+		}
+		accept(ENDCOMMENT);
+		return new CommentNode(comment);
+}
+
+CommentNode * XMLParser::CData() {
+	accept(OPENCDATA);
+	String cdata;
+	while(symbol!=ENDCDATA) {
+		accept(symbol);
+		cdata.append(accepted.lexeme);
+	}
+	accept(ENDCDATA);
+	return new CommentNode(cdata);
 }
 
 // { Comment }
 void XMLParser::optionalComment() {
 	optional(WS);
-	while(symbol==COMMENT) {
-		optional(COMMENT);
+	while(symbol==OPENCOMMENT) {
+		delete Comment();
+		//optional(COMMENT);
 		optional(WS);
 	}
 }

@@ -23,7 +23,7 @@ Char ILexer::getChar() {
 String ILexer::getChars(int number) {
 	int read = 0;
 	String result;
-	while (read < number++)
+	while (read++ < number)
 		result.append(1,getChar());
 	return result;
 }
