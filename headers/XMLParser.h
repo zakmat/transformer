@@ -44,7 +44,8 @@ protected:
 	//Prolog -> '<?' Name { Attribute } '?>'
 	NodeVec Prolog();
 
-	String Name();
+	String SimpleName();
+	Name ExpName();
 public:
 	XMLParser(ILexer * l);
 	virtual ~XMLParser() {};

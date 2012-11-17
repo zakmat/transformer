@@ -33,7 +33,7 @@ Node * XMLParser::Document() {
 	Node * elem = Element();
 	optionalComment();
 	NodeVec main(1,elem);
-	Node * root = new ElementNode("root", attrs, main);
+	Node * root = new ElementNode(Name("root"), attrs, main);
 	root->saveOrder();
 	return root;
 }
@@ -41,7 +41,7 @@ Node * XMLParser::Document() {
 //Prolog -> '<?' Name { Attribute } '?>'
 NodeVec XMLParser::Prolog() {
 	accept(OPENPI);
-	String n = Name();
+	Name n = ExpName();
 
 	optional(WS);
 	NodeVec attrs;
@@ -56,7 +56,7 @@ NodeVec XMLParser::Prolog() {
 // Element:= '<' Name { Attribute } ( '/>' | ('>' Content '</' Name '>'))
 ElementNode * XMLParser::Element() {
 	accept(OPENTAG);
-	String name = Name();
+	Name name = ExpName();
 	optional(WS);
 
 	NodeVec attrs;
@@ -72,9 +72,9 @@ ElementNode * XMLParser::Element() {
 		accept(CLOSETAG);
 		NodeVec content = Content();
 		accept(OPENENDTAG);
-		String name2 = Name();
+		Name name2 = ExpName();
 		if(name!=name2)
-			semanticError(String("Znacznik zamykajacy ma nieodpowiednia nazwe: ")+=name2);
+			semanticError(String("Znacznik zamykajacy ma nieodpowiednia nazwe: ")+name2.string());
 		accept(CLOSETAG);
 		return new ElementNode(name,attrs,content);
 	}
@@ -82,29 +82,38 @@ ElementNode * XMLParser::Element() {
 
 //Attribute -> Name '=' Literal
 AttributeNode * XMLParser::Attribute() {
-	String name, value;
-	name = Name();
+	Name name = ExpName();
 	optional(WS);
 	accept(EQUALOP);
 	optional(WS);
-	value = Literal();
+	String value = Literal();
 	return new AttributeNode(name,value);
 }
 
-String XMLParser::Name() {
-	String nameSoFar;
-	accept(ID);
-	nameSoFar.append(accepted.lexeme);
-	if(symbol==MINUS) {
-		accept(MINUS);
-	    nameSoFar.append("-");
-	}
+Name XMLParser::ExpName() {
+	String first = SimpleName();
 	if(symbol==COLON) {
 		accept(COLON);
-		accept(ID);
-		nameSoFar.append(":");
-		nameSoFar.append(accepted.lexeme);
+		String second = SimpleName();
+		return Name(first,second);
 	}
+	else
+		return Name(first);
+}
+
+String XMLParser::SimpleName() {
+	String nameSoFar;
+	while(symbol==ID || symbol==MINUS) {
+		if(symbol==MINUS) {
+			accept(MINUS);
+		    nameSoFar.append("-");
+		}
+		else {
+			accept(ID);
+			nameSoFar.append(accepted.lexeme);
+		}
+	}
+
 	return nameSoFar;
 }
 

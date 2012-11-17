@@ -90,7 +90,7 @@ void Node::saveOrder() {
 }
 
 
-ElementNode::ElementNode(String n, NodeVec a, NodeVec c) :
+ElementNode::ElementNode(const Name& n, NodeVec a, NodeVec c) :
 					name(n), attrs(a), children(c) {
 	parent = NULL;
 	//dla kazdego elementu wektora wywolujemy metode setParent z aktualnym wezlem jako argumentem
@@ -118,7 +118,7 @@ void indent(const int & depth, std::ostream& os) {
 }
 
 void ElementNode::print(int depth, std::ostream& os) const{
-	indent(depth, os); os << '<' << name;
+	indent(depth, os); os << '<' << name.string();
 	for(NodeVec::const_iterator it = attrs.begin();it!=attrs.end();++it) {
 		os << " ";
 		(*it)->print(0, os);
@@ -133,7 +133,7 @@ void ElementNode::print(int depth, std::ostream& os) const{
 	for(NodeVec::const_iterator it = children.begin();it!=children.end();++it) {
 		(*it)->print(depth+1, os);
 	}
-	indent(depth, os); os << "</" << name << ">\n";
+	indent(depth, os); os << "</" << name.string() << ">\n";
 	os.flush();
 }
 
@@ -146,7 +146,7 @@ void CommentNode::print(int depth, std::ostream& os) const {
 }
 
 void AttributeNode::print(int depth, std::ostream& os) const {
-	indent(depth, os); os << name << '=' <<'"' << value << '"';
+	indent(depth, os); os << name.string() << '=' <<'"' << value << '"';
 }
 
 String ElementNode::string() const {
