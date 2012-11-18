@@ -27,6 +27,7 @@ class Transformer {
 	std::vector<parsingXML::Node *> result;
 
 	parsingXSLT::Context getInitialContext() const;
+	parsingXML::XMLTree * parseXML(ISource * document) const;
 public:
 	Transformer();
 	~Transformer();

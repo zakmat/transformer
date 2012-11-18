@@ -88,7 +88,6 @@ public:
 	NodeVec getTextChildren() const;
 	NodeVec getAllChildren() const;
 	NodeVec getAllElementChildren() const;
-
 	NodeVec getAttrByName(const String& n) const;
 	NodeVec getAllAttrs() const;
 
@@ -128,6 +127,7 @@ class XMLTree : public ParsedObject {
 	Node * root;
 
 public:
+	void recognizeXSLKeywords();
 	Node * getRoot() const {return root;};
 	XMLTree(Node * r = NULL):root(r) {};
 	virtual ~XMLTree() { delete root;};

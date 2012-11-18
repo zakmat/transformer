@@ -220,6 +220,12 @@ Node * Node::getCurrent() {
 	return this;
 }
 
+void XMLTree::recognizeXSLKeywords() {
+
+
+	std::for_each(attrs.begin(),attrs.end(), std::bind2nd(std::mem_fun(&Node::setParent), this));
+}
+
 }
 
 

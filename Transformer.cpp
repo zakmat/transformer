@@ -30,43 +30,56 @@ Transformer::~Transformer() {
 void Transformer::loadXMLSource(char * filename) {
 	this->sourcefname = filename;
 	ISource * xmldoc = new FileStreamSource(sourcefname,verboseMode);
-	ILexer * xmllex = new parsingXML::XMLLexer(xmldoc);
+
+	source = parseXML(xmldoc);
+	sourceErrsDetected = xmldoc->countErrors();
+
+	delete xmldoc;
+}
+
+parsingXML::XMLTree * Transformer::parseXML(ISource * document) const {
+	ILexer * xmllex = new parsingXML::XMLLexer(document);
 	IParser * xmlparser = new parsingXML::XMLParser(xmllex);
 
 	std::cout << "Rozpoczeto parsowanie dokumentu zrodlowego" << std::endl;
 
-	ParsedObject * pt = xmlparser->startParsing();
+	parsingXML::XMLTree * tree = (parsingXML::XMLTree *) xmlparser->startParsing();
 	std::cout << "Zakonczono parsowanie dokumentu zrodlowego" << std::endl;
 
-	source = (parsingXML::XMLTree *) pt;
-	sourceErrsDetected = xmldoc->countErrors();
+	//parsingXML::XMLTree * source = (parsingXML::XMLTree *) pt;
 
-	delete xmldoc;
 	delete xmllex;
 	delete xmlparser;
 
-	std::cout << "Zakonczono wczytywanie dokumentu zrodlowego" << std::endl;
+	return tree;
 }
-
 
 //od teraz loadStyleSheet będzie w pierwszej kolejności korzystał właśnie z fcji loadXML
 void Transformer::loadStyleSheet(char * filename) {
 	this->stylesfname = filename;
-
 	ISource * xsldoc = new FileStreamSource(stylesfname,verboseMode);
+
+	transformations = recognizeStylesheet(parseXML(xsldoc));
+	styleErrsDetected = xsldoc->countErrors();
+
+	delete xsldoc;
+
+	std::cout << "Zakonczono wczytywanie arkusza stylow" << std::endl;
+}
+
+parsingXSLT::XSLTStylesheet * Transformer::recognizeStylesheet(parsingXML::XMLTree * tree) {
 	ILexer * xsllex = new parsingXSLT::XSLTLexer(xsldoc);
 	IParser * xslparser = new parsingXSLT::XSLTParser(xsllex);
 
+	tree->recognizeXSLKeywords();
+	xslParser->validateStructure(tree);
+
 	ParsedObject * pt = xslparser->startParsing();
 
-	transformations = (parsingXSLT::XSLTStylesheet *) pt;
-	styleErrsDetected = xsldoc ->countErrors();
-
-	delete xsldoc;
 	delete xsllex;
 	delete xslparser;
 
-	std::cout << "Zakonczono wczytywanie arkusza stylow" << std::endl;
+	return (parsingXSLT::XSLTStylesheet *) pt;
 }
 
 void Transformer::setDestination(char * filename) {

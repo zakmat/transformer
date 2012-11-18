@@ -225,7 +225,7 @@ public:
 	virtual XSLConditional* clone() const { return new XSLConditional(*this);};
 	XSLConditional(const XSLConditional& rhs);
 	~XSLConditional();
-	std::vector<xmlNode *> evaluate(const Context & context) const;
+	NodeVec evaluate(const Context & context) const;
 };
 
 
