@@ -68,16 +68,11 @@ void Transformer::loadStyleSheet(char * filename) {
 }
 
 parsingXSLT::XSLTStylesheet * Transformer::recognizeStylesheet(parsingXML::XMLTree * tree) {
-	ILexer * xsllex = new parsingXSLT::XSLTLexer(xsldoc);
-	IParser * xslparser = new parsingXSLT::XSLTParser(xsllex);
 
-	tree->recognizeXSLKeywords();
+	tree->getRoot()->recognizeXSLElement();
 	xslParser->validateStructure(tree);
 
 	ParsedObject * pt = xslparser->startParsing();
-
-	delete xsllex;
-	delete xslparser;
 
 	return (parsingXSLT::XSLTStylesheet *) pt;
 }

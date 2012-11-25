@@ -25,16 +25,6 @@ XSLTParser::XSLTParser(ILexer * l): parsingXML::XMLParser(l) {
 	tokenDescriptions = xsltTokDesc;
 }
 
-void XSLTParser::closeElement(XSLTSymbol s) {
-	optional(WS);
-	accept(OPENENDTAG);
-	optional(WS);
-	accept(s);
-	optional(WS);
-	accept(CLOSETAG);
-	optional(WS);
-}
-
 int getNumericVal(const String & s) {
 	int tmp = 0;
 	unsigned i = 0;
@@ -164,57 +154,36 @@ XSLTStylesheet * XSLTParser::Document() {
 
 // Stylesheet -> '<' STYLESHEET Version { Attribute } '>' { Comment } { Template { Comment} }'</' STYLESHEET '>'
 XSLTStylesheet * XSLTParser::Stylesheet() {
-	accept(OPENTAG);
-	accept(STYLESHEET);
-	optional(WS);
-	matchVersion();
-	while(symbol != CLOSETAG) {
-		Attribute();
-		optional(WS);
-	}
-	accept(CLOSETAG);
-	XMLParser::optionalComment();
+	matchXSLKeyword("stylesheet");
+	matchAttribute("version");
 
-	std::vector<XSLTTemplate *> ret;
-
-	while(symbol!=OPENENDTAG) {
+	TemplateVec ret;
+	for(Node c: all_children)
 		ret.push_back(Template());
-		//ret.back()->print();
-		XMLParser::optionalComment();
-	}
-	closeElement(STYLESHEET);
+
 	return new XSLTStylesheet(ret);
 }
 
 // Template -> '<' TEMPLATE (MATCH | NAME) '=' LITERAL ('priority' '=' NUMBER)? '>' Content '</ TEMPLATE '>'
 XSLTTemplate * XSLTParser::Template() {
 	String str = "";
-	LocExpr * ns = 0;
+	LocExpr * ns = NULL;
 	int priority = 0;
 
-	accept(OPENTAG);
-	accept(TEMPLATE);
-	optional(WS);
-	switch(symbol) {
-	case MATCH:
-		ns = matchTemplatePattern();
-		break;
-	case TEMPLATENAME:
-		str = matchNamedAttr("name", NAME);
-		break;
-	default:
+
+	matchXSLKeyword("template");
+	String pattern = matchAttribute("match");
+	if (pattern != "")
+		ns = parseXPath(pattern);
+	else if (matchAttribute("name")!="")
+	{}
+	else {
 		syntaxError("Nieoczekiwany symbol: ", symbol);
 		return 0;
 	}
-	optional(WS);
-	if(symbol==PRIORITY)
-		priority = getNumericVal(matchNamedAttr("priority",PRIORITY));
-	optional(WS);
-	accept(CLOSETAG);
-	optional(WS);
+	String priority_str = matchAttribute("priority");
+	priority = getNumericVal(priority_str);
 	InstructionVec l = Content();
-	optional(WS);
-	closeElement(TEMPLATE);
 	return new XSLTTemplate(ns, str, priority, l);
 }
 
@@ -222,43 +191,26 @@ XSLTTemplate * XSLTParser::Template() {
 // Content -> { Comment | '<' TopLevelInstruction | Text }
 InstructionVec XSLTParser::Content() {
 	InstructionVec ret;
-	optional(WS);
-	while(symbol!=OPENENDTAG) {
-		switch(symbol) {
-		case OPENTAG:	accept(OPENTAG);
-						ret.push_back(TopLevelInstruction());
-		break;
-		case COMMENT:	Comment();
-		break;
-		default:		ret.push_back(Text());
-		break;
-		}
-		optional(WS);
+
+	for(child c: all_children) {
+		if(c.isXSLInstruction())
+			ret.push_back(TopLevelInstruction());
+		else
+			ret.push_back(Text());
 	}
 	return ret;
 }
 
 
-String XSLTParser::Comment() {
-	accept(COMMENT);
-	return accepted.lexeme;
-}
-
 XSLText * XSLTParser::Text() {
-	String s;
-	while(symbol != OPENTAG && symbol != OPENENDTAG) {
-		accept(symbol);
-		s.append(accepted.lexeme);
-	}
-	if(accepted.symbol==WS)
-		s.erase(s.size()-accepted.lexeme.size());
+	String s = node.value();
 	return new XSLText(s);
 }
 
 // TLI -> ApplyTemplates | If | Choose | ForEach | ValueOf
 Instruction * XSLTParser::TopLevelInstruction() {
-	optional(WS);
-	switch(symbol) {
+	TokSymbol kw = matchXSLKeyword();
+	switch(kw) {
 	case APPLYTEMPLATES: 	return ApplyTemplates(); break;
 	case IFCLAUSE:			return IfClause(); break;
 	case CHOOSE:			return Choose(); break;
@@ -270,74 +222,52 @@ Instruction * XSLTParser::TopLevelInstruction() {
 
 //ApplyTemplates -> APPLYTEMPLATES (SELECT '=' '"' Path '"')? ( '/>' | '>' {'<' Sort} '</' APPLYTEMPLATES '>' )
 XSLApplyTemplates * XSLTParser::ApplyTemplates() {
-	accept(APPLYTEMPLATES);
-	optional(WS);
+	matchXSLKeyword("apply-templates");
 	LocExpr * selected = NULL;
 	SortVec sorts;
-	if(symbol==SELECT) {
-		selected = matchSelectNodeSet();
-		optional(WS);
-	}
-	if(symbol==ENDEMPTYELEM) {//zastosuj dla wszystkich dzieci
-		accept(ENDEMPTYELEM);
+
+	String selected_str = matchAttribute("select");
+	if (selected_str!="")
+		selected = parseXPath(selected_str);
+	if (no_children_at_all)
 		return new XSLApplyTemplates(selected);
-	}
-	else if(symbol==CLOSETAG) {
-		accept(CLOSETAG);
-		optional(WS);
-		while(symbol!=OPENENDTAG) {
-			accept(OPENTAG);
-			optional(WS);
-			sorts.push_back(Sort());
-			optional(WS);
-		}
-		closeElement(APPLYTEMPLATES);
-		return new XSLApplyTemplates(selected, sorts);
-	}
 	else {
-		syntaxError("Nieobslugiwany typ instrukcji", symbol);
-		return new XSLApplyTemplates(selected);
+		while(matchXSLKeyword("sort")!=0) {
+			matchSorts();
+			sorts.push_back(Sort());//w petli
+		}
+		//TODO jesli nie sort to syntax_error
+				//syntaxError("Nieobslugiwany typ instrukcji", symbol);
+				//return new XSLApplyTemplates(selected);
+		return new XSLApplyTemplates(selected,sorts);
 	}
 }
 // Sort -> SORT (SelectE)? ( Order | Datatype )? '/>'
 XSLSort * XSLTParser::Sort() {
-	optional(WS);
-	accept(SORT);
-	optional(WS);
+	matchXSLKeyword("sort");
 	XPathExpr * selected = NULL;
-	if(symbol==SELECT) {
-		selected = matchSelectExpression();
-		optional(WS);
-	}
+	String selected_str = matchAttribute("select");
+	if (selected_str!="")
+		selected = parseXPath(selected_str);
+
 	OrderVal order = ASCENDING;
 	DataType type = TEXT;
-	optional(WS);
-	while(symbol!=ENDEMPTYELEM) {
-		switch(symbol) {
-		case ORDER:
-			order = matchOrderAttr();
-			break;
-		case DATATYPE:
-			type = matchDataTypeAttr();
-			break;
-		default:
-			syntaxError("Nieoczekiwany symbol: ", symbol);
-			return 0;
-		}
-		optional(WS);
-	}
-	accept(ENDEMPTYELEM);
+	//TODO dwa atrybuty w dowolnej kolejności, zaden inny
+	matchAttribute("order");
+	matchAttribute("data-type");
+	//		syntaxError("Nieoczekiwany symbol: ", symbol);
+	//return 0;
+
 	return new XSLSort(selected,order,type);
 }
 
 // If -> IF TestE '>' Content '</' IF '>'
 XSLConditional * XSLTParser::IfClause() {
-	accept(IFCLAUSE);
-	accept(WS);
+	matchXSLKeyword("if");
 	XPathExpr* expr = matchCondition();
-	accept(CLOSETAG);
+
 	InstructionVec body = Content();
-	closeElement(IFCLAUSE);
+
 	return new XSLConditional(expr, body);
 }
 
@@ -345,54 +275,39 @@ XSLConditional * XSLTParser::IfClause() {
 XSLBranch * XSLTParser::Choose() {
 	ConditionalVec conds;
 	InstructionVec otherwise;
-	accept(CHOOSE);
-	accept(CLOSETAG);
-	optional(WS);
-	while(symbol!=OPENENDTAG) {
-		accept(OPENTAG);
-		if(symbol==WHEN)
+
+	matchXSLKeyword("choose");
+	for(child c: all_children) {
+		if(c.matchXSLKeyword("when")!=0)
 			conds.push_back(When());
 		else {
 			otherwise = Otherwise();
-			closeElement(CHOOSE);
 			return new XSLBranch(conds, otherwise);
 		}
 	}
-	closeElement(CHOOSE);
 	return new XSLBranch(conds);
 }
 
 //When -> WHEN TestE '>' Content '</' WHEN '>'
 XSLConditional * XSLTParser::When() {
-	accept(WHEN);
-	accept(WS);
+	matchXSLKeyword("when");
 	XPathExpr * expr = matchCondition();
-	accept(CLOSETAG);
 	InstructionVec body = Content();
-	closeElement(WHEN);
 	return new XSLConditional(expr, body);
 }
 
 // Otherwise -> OTHERWISE '>' Content '</' OTHERWISE '>'
 InstructionVec XSLTParser::Otherwise() {
-	accept(OTHERWISE);
-	optional(WS);
-	accept(CLOSETAG);
+	matchXSLKeyword("otherwise");
 	InstructionVec ret = Content();
-	closeElement(OTHERWISE);
 	return ret;
 }
 
 //ForEach -> FOREACH SelectNS '>' ForEachContent '</' FOREACH '>'
 XSLRepetition * XSLTParser::ForEach() {
-	accept(FOREACH);
-	accept(WS);
+	matchXSLKeyword("for-each");
 	LocExpr * xPath = matchSelectNodeSet();
-	optional(WS);
-	accept(CLOSETAG);
-	optional(WS);
 	std::pair<SortVec, InstructionVec> vecs = ForEachContent();
-	closeElement(FOREACH);
 	return new XSLRepetition(xPath, vecs.first, vecs.second);
 }
 
@@ -400,92 +315,37 @@ XSLRepetition * XSLTParser::ForEach() {
 std::pair<SortVec, InstructionVec> XSLTParser::ForEachContent() {
 	std::pair<SortVec, InstructionVec> ret;
 	bool endOfSorts = false;
-	while(symbol!=OPENENDTAG && !endOfSorts) {
-		switch(symbol) {
-		case OPENTAG:
-			accept(OPENTAG);
-			optional(WS);
-			if(symbol==SORT)
-				ret.first.push_back(Sort());
-			else {
-				ret.second.push_back(TopLevelInstruction());
-				endOfSorts = true;
-			}
+	while(still_has_children && !endOfSorts) {
+		//TODO obsluz instrukcje wezlow potomnych najpierw sorty, pozniej dowolne
+		if(c.matchXSLKeyword("sort")==0)//czyli wreszcie nie sort
 			break;
-		case COMMENT:	Comment();
-		break;
-		default:		ret.second.push_back(Text());
-		break;
-		}
-		optional(WS);
+		ret.first.push_back(Sort());
+		//po drodze nalezy ignorowac komenty
+		//TODO zastanowic się gdzie tu miejsce dla Text();
 	}
+	//nastepnie dopasowac pozostale instrukcje
+	InstructionVec ret = Content();
 
-	//kolejne instrukcje to juz na pewno nie sort.
-	//nie wywoluje Content jawnie bo dodanie pierwszej
-	//instrukcji na poczatku wektora, trwa liniowo w stosunku do jego dlugosci
-
-	optional(WS);
-	while(symbol!=OPENENDTAG) {
-		switch(symbol) {
-		case OPENTAG:	ret.second.push_back(TopLevelInstruction());
-		break;
-		case COMMENT:	Comment();
-		break;
-		default:		ret.second.push_back(Text());
-		break;
-		}
-		optional(WS);
-	}
 	return ret;
 }
 
 // ValueOf -> VALUEOF SelectE '/>'
 XSLValueOf * XSLTParser::ValueOf() {
-	accept(VALUEOF);
-	accept(WS);
+	matchXSLKeyword("value-of");
 	XPathExpr * xPath = matchSelectExpression();
-	optional(WS);
-	accept(ENDEMPTYELEM);
 	return new XSLValueOf(xPath);
 }
 
 //Complex -> Name { Attribute } ( '/>' | '>' Content '</' Name '>')
 XSLComplex * XSLTParser::ComplexInstruction() {
+	//TODO ewentualnie sprawdzic czy nie ma slow zakazanych, wpp przepisac bez zmian
 	//accept(OPENTAG);
-	accept(ID);
-	String name = accepted.lexeme;
-	optional(WS);
-	NodeVec attrs;
-	while(symbol!=ENDEMPTYELEM && symbol != CLOSETAG) {
-		attrs.push_back(XMLParser::Attribute());
-		optional(WS);
-	}
-	if(symbol==ENDEMPTYELEM) {
-		accept(ENDEMPTYELEM);
-		return new XSLComplex(name,attrs);
-	}
+	if(no_children_at_all)
+		return new XSLComplex(node.name,node.attrs);
 	else {
-		accept(CLOSETAG);
 		InstructionVec content = Content();
-		accept(OPENENDTAG);
-		String name2 = XMLParser::Name();
-		if(name!=name2)
-			semanticError(String("Znacznik zamykajacy ma nieodpowiednia nazwe: ")+=name2);
-		accept(CLOSETAG);
-		return new XSLComplex(name,attrs,content);
+		return new XSLComplex(node.name,node.attrs,content);
 	}
-
-}
-
-std::pair<String, String> XSLTParser::Attribute() {
-	std::pair<String, String> ret;
-	ret.first = XMLParser::Name();
-	optional(WS);
-	accept(EQUALOP);
-	optional(WS);
-	accept(LITERAL);
-	ret.second = accepted.lexeme;
-	return ret;
 }
 
 

@@ -16,6 +16,30 @@
 
 namespace parsingXSLT {
 
+/*
+ * atomy akceptowane przez analizator leksykalny XSLT, dziela sie na dwie grupy, pierwsza z nich to atomy wystepujace
+ * rowniez w a.l. dla dokumentow XML, natomiast druga grupa to rozpoznawane slowa kluczowe procesora XSLT
+ */
+
+enum XSLSymbol {
+	STYLESHEET, TEMPLATE, APPLYTEMPLATES, VALUEOF, FOREACH, IFCLAUSE, CHOOSE, WHEN, OTHERWISE, SORT,
+	TEMPLATENAME, MATCH, PRIORITY, SELECT, ORDER, DATATYPE, TEST, MAXSYM
+};
+
+const int KEYWORDSNUM = MAXSYM - 1;
+
+struct KeywordMapping {
+		const char * key;
+		XSLSymbol symbol;
+	};
+
+static KeywordMapping keywords[KEYWORDSNUM];
+
+	//dla identyfikatorow obliczany jest hash
+	int calculateHash(const String & sequence) const;
+	//funkcja probuje dopasowac odczytany identyfikator do slowa kluczowego
+	Token tryToMatchKeyword(const String & sequence);
+
 class Context;
 class Instruction;
 class XSLTStylesheet;
@@ -28,6 +52,7 @@ typedef parsingXPath::XPathExpression XPathExpr;
 typedef parsingXML::Node xmlNode;
 typedef std::vector<parsingXML::Node*> NodeVec;
 
+typedef std::vector<XSLTTemplate *> TemplateVec;
 typedef std::vector<Instruction *> InstructionVec;
 typedef std::vector<XSLConditional *> ConditionalVec;
 typedef std::vector<XSLSort *> SortVec;
@@ -79,7 +104,7 @@ public:
 //klasa reprezentujaca arkusz styli, w praktyce zbior szablonow do przegladania + szablon domyslny
 class XSLTStylesheet : public ParsedObject {
 
-	std::vector<XSLTTemplate *> templates;
+	TemplateVec templates;
 
 	//w przypadku gdy zaden z szablonow nie pasuje do wezla, wywolywany jest szablon wbudowany
 	//odpowiada on instrukcji <xsl:apply-templates select="*"/>
@@ -87,7 +112,7 @@ class XSLTStylesheet : public ParsedObject {
 	XSLTTemplate * defTemplate;
 	XSLTTemplate * getDefaultTemplate() const;
 public:
-	XSLTStylesheet(const std::vector<XSLTTemplate *>& t);
+	XSLTStylesheet(const TemplateVec& t);
 	virtual ~XSLTStylesheet();
 
 	XSLTTemplate * findBestFittingTemplate(xmlNode * node) const;
@@ -263,13 +288,13 @@ public:
  */
 class XSLComplex : public Instruction {
 	typedef std::vector<std::pair< String, String> > AttrList;
-	String name;
+	Name name;
 	NodeVec attrs;
 	InstructionVec children;
 
 public:
 	void print(int d);
-	XSLComplex(const String & _name, const NodeVec & _attrs,
+	XSLComplex(const Name & _name, const NodeVec & _attrs,
 			const InstructionVec & _children = InstructionVec()):
 				name(_name), attrs(_attrs), children(_children) {};
 	virtual XSLComplex* clone() const { return new XSLComplex(*this);};

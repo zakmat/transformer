@@ -63,6 +63,8 @@ public:
 
 	Node * getRoot();
 
+	virtual void recognizeXSLElement() = 0;
+
 	virtual String string() const = 0;
 	virtual Node * clone() const = 0;
 };
@@ -79,6 +81,8 @@ public:
 	ElementNode(const ElementNode& rhs);
 	virtual ~ElementNode();
 	void print(int d, std::ostream& os) const;
+
+	void recognizeXSLElement();
 	String string() const;
 	Name getName() const { return name; };
 	ElementNode* clone() const { return new ElementNode(*this);};
@@ -102,6 +106,7 @@ public:
 	String string() const;
 	Name getName() const  { return name; };
 	AttributeNode * clone() const { return new AttributeNode(*this);};
+	void recognizeXSLElement();
 };
 
 class TextNode : public Node{
@@ -110,6 +115,7 @@ public:
 	TextNode(const String& t): text(t) {};
 	void print(int d, std::ostream& os) const;
 	String string() const;
+	void recognizeXSLElement(){};
 	TextNode * clone() const { return new TextNode(*this);};
 
 };
@@ -117,6 +123,7 @@ public:
 class CommentNode : public Node {
 	String comment;
 public:
+	void recognizeXSLElement(){};
 	CommentNode(const String& c): comment(c) {};
 	void print(int d, std::ostream& os) const;
 	String string() const { return String();};
@@ -127,6 +134,7 @@ class XMLTree : public ParsedObject {
 	Node * root;
 
 public:
+	void recognizeXSLElement();
 	void recognizeXSLKeywords();
 	Node * getRoot() const {return root;};
 	XMLTree(Node * r = NULL):root(r) {};

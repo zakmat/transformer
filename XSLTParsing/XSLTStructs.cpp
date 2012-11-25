@@ -9,6 +9,55 @@
 
 namespace parsingXSLT {
 
+//kolejnosc slow kluczowych zostala ustalona eksperymentalnie
+KeywordMapping keywords[KEYWORDSNUM] = {
+		{"xsl:when", WHEN},
+		{"xsl:if", IFCLAUSE},
+		{"xsl:choose", CHOOSE},
+		{"xsl:sort", SORT},
+		{"xsl:stylesheet", STYLESHEET},
+		{"priority", PRIORITY},
+		{"name", TEMPLATENAME},
+		{"xsl:template", TEMPLATE},
+		{"xsl:for-each", FOREACH},
+		{"select", SELECT},
+		{"data-type", DATATYPE},
+		{"order", ORDER},
+		{"match", MATCH},
+		{"xsl:apply-templates", APPLYTEMPLATES},
+		{"test", TEST},
+		{"xsl:value-of", VALUEOF},
+		{"xsl:otherwise", OTHERWISE},
+};
+
+Token tryToMatchKeyword(const String & sequence) {
+	int hash = calculateHash(sequence);
+	if (keywords[hash].key == sequence)
+		return Token(keywords[hash].symbol, sequence);
+	else return Token(ID, sequence);
+}
+
+int calculateHash(const String & sequence) const {
+	int i;
+	//udalo sie znalezc funkcje hasujaca zwracajaca 2 kolizje dla tablicy o rozmiarze 17
+	//167, 179
+	// if len(s)<7: i =0
+    //else: i = 4
+    //return (ord(s[i])*first + ord(s[i+1])*second + ord(s[i+2])) % 17
+	if(sequence.size()<3)
+		return 0;
+	if(sequence.size()<7)
+		i = 0;
+	else
+		i=4;
+	int ret = (sequence.at(i)*167+sequence.at(i+1)*179 + sequence.at(i+2)) % 17;
+
+	if(ret==13 && sequence.at(0)=='t')//przypadek test
+			return 14;
+	if(ret==16 && sequence.at(0)=='m')//przypadek match
+			return 12;
+	return ret;
+}
 
 //funkcja sluzy do glebokiego kopiowania kontenerow zawierajacych polimorficzne wskazniki
 template<typename T>
@@ -39,7 +88,8 @@ XSLTTemplate::~XSLTTemplate() {
 }
 
 void XSLTTemplate::print() {
-	std::cout << "template: Priorytet: " << priority << " Nazwa: " << name << " wzorzec dopasowania: " << pattern <<'\n';
+	std::cout << "template: Priorytet: " << priority << " Nazwa: " << name
+			<< " wzorzec dopasowania: " << pattern <<'\n';
 	for(InstructionVec::iterator it = instructions.begin();it!=instructions.end();++it) {
 		(*it)->print(1);
 		std::cout << '\n';
@@ -64,7 +114,7 @@ XSLTStylesheet::~XSLTStylesheet() {
 }
 
 void XSLTStylesheet::print() {
-	for(std::vector<XSLTTemplate *>::iterator it = templates.begin(); it!=templates.end();it++) {
+	for(TemplateVec::iterator it = templates.begin(); it!=templates.end();it++) {
 		(*it)->print();
 	}
 }
@@ -74,7 +124,7 @@ void XSLTStylesheet::print() {
 XSLTTemplate * XSLTStylesheet::findBestFittingTemplate(xmlNode * contextNode) const {
 	XSLTTemplate * ret = NULL;
 
-	for(std::vector<XSLTTemplate *>::const_iterator it = templates.begin(); it!=templates.end(); it++) {
+	for(TemplateVec::const_iterator it = templates.begin(); it!=templates.end(); it++) {
 		if((*it)->isMatching(contextNode)) {
 			if(ret==NULL)
 				ret = *it;
@@ -123,7 +173,8 @@ void XSLBranch::print(int d) {
 	}
 }
 
-XSLBranch::XSLBranch(ConditionalVec cB, InstructionVec dB): conditionalBranches(cB), defBranch(dB) {
+XSLBranch::XSLBranch(ConditionalVec cB, InstructionVec dB):
+		conditionalBranches(cB), defBranch(dB) {
 	isDefaultDefined = (dB.size()!=0);
 }
 
@@ -284,7 +335,7 @@ NodeVec XSLComplex::evaluate(const Context& context)const{
 	NodeVec retChildren = context.instantiate(children);
 
 	NodeVec result;
-	result.push_back(new parsingXML::ElementNode(this->name,retAttrs,retChildren));
+	result.push_back(new parsingXML::ElementNode(this->name, retAttrs, retChildren));
 	return result;
 }
 
@@ -314,7 +365,8 @@ NodeVec XSLSort::evaluate(const Context & context)const{
 	XSLSort::Comparator c(this);
 
 	/*
-	 * stable_sort zapewnia stalosc sortowania, tzn, kolejnosc elementow o rownych kluczach nie ulegnie zmianie
+	 * stable_sort zapewnia stalosc sortowania,
+	 * tzn. kolejnosc elementow o rownych kluczach nie ulegnie zmianie
 	 * wlasnosc ta pozwala sortowac po kilku kluczach jednoczesnie
 	 */
 	std::stable_sort(wrappedVec.begin(),wrappedVec.end(),c);
@@ -371,7 +423,7 @@ bool XSLSort::compare(const String & a, const String &b)const {
 		return b < a;
 	}
 	else if((order == ASCENDING) && (type == NUMBER)) {
-		return getNumericValue(a)< getNumericValue(b);
+		return getNumericValue(a) < getNumericValue(b);
 	}
 	else {
 		return getNumericValue(b) < getNumericValue(a);

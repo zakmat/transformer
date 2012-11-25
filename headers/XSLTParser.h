@@ -9,19 +9,16 @@
 #define XSLTPARSER_H_
 
 #include "XMLParser.h"
-#include "XSLTLexer.h"
 #include "XSLTStructs.h"
 
 namespace parsingXSLT {
 
 //klasa reprezentuje parser arkusza XSLT,
 //dziedziczy po parserze xml by wykorzystac kilka istniejacych juz regul
-class XSLTParser: public parsingXML::XMLParser {
+class XSLTParser {
 
-	//funkcje pomocnicze zgodnie z zasada DRY pozwalaja uniknac powtorzen w kodzie
 
 	// '</' KEYWORD '>'
-	void closeElement(XSLTSymbol s);
 
 	// 'Name' '=' '"' Value '"'
 	String matchNamedAttr(const String & Name, TokSymbol t);
