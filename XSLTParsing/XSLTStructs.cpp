@@ -30,6 +30,7 @@ KeywordMapping keywords[KEYWORDSNUM] = {
 		{"xsl:otherwise", OTHERWISE},
 };
 
+/*
 Token tryToMatchKeyword(const String & sequence) {
 	int hash = calculateHash(sequence);
 	if (keywords[hash].key == sequence)
@@ -57,7 +58,7 @@ int calculateHash(const String & sequence) const {
 	if(ret==16 && sequence.at(0)=='m')//przypadek match
 			return 12;
 	return ret;
-}
+}*/
 
 //funkcja sluzy do glebokiego kopiowania kontenerow zawierajacych polimorficzne wskazniki
 template<typename T>

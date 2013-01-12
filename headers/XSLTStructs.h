@@ -36,13 +36,14 @@ struct KeywordMapping {
 static KeywordMapping keywords[KEYWORDSNUM];
 
 	//dla identyfikatorow obliczany jest hash
-	int calculateHash(const String & sequence) const;
+	//int calculateHash(const String & sequence) const;
 	//funkcja probuje dopasowac odczytany identyfikator do slowa kluczowego
-	Token tryToMatchKeyword(const String & sequence);
+	//Token tryToMatchKeyword(const String & sequence);
 
 class Context;
 class Instruction;
 class XSLTStylesheet;
+class XSLTTemplate;
 class XSLConditional;
 class XSLSort;
 
@@ -61,6 +62,8 @@ typedef std::vector<XSLSort *> SortVec;
 
 //klasa reprezentuje instrukcje procesora XSLT
 class Instruction {
+protected:
+	XSLSymbol instrType;
 public:
 	void indent(const int & depth) {
 		for(int i=0;i<depth;++i)
@@ -69,6 +72,7 @@ public:
 	//tylko na potrzeby debuggingu o ile dla drzew xml wypisany obiekt wyglada calkiem znosnie,
 	//o tyle tu w ogole
 	virtual void print(int depth) = 0;
+	XSLSymbol type() const {return instrType; };
 	//napotkana instrukcja jest realizowana w kontekscie biezacego wezla
 	virtual NodeVec evaluate(const Context & context)const = 0;
 	virtual Instruction* clone() const = 0;
@@ -181,7 +185,7 @@ class XSLSort : public Instruction {
 	struct SortWrapper {
 		String val;
 		xmlNode * n;
-		SortWrapper(const String& v, xmlNode * n_):val(v), n(n_) {};
+		SortWrapper(const String& v, xmlNode * n_): val(v), n(n_) {};
 	};
 	struct Comparator {
 		const XSLSort * sort;
@@ -195,9 +199,9 @@ class XSLSort : public Instruction {
 	DataType type;
 
 
-	String string(const NodeVec& v)const;
-	String string(xmlNode *n)const;
-	bool compare(const String & a, const String &b)const;
+	String string(const NodeVec& v) const;
+	String string(xmlNode *n) const;
+	bool compare(const String & a, const String &b) const;
 public:
 	OrderVal getOrder()const { return order;};
 	DataType getType() const { return type; };
@@ -259,6 +263,7 @@ public:
 //a nastepne warunki nie sa juz nawet sprawdzane
 //jesli zaden z warunkow nie okazal sie prawdziwy a mamy zdefiniowana instrukcje otherwise,
 //to jest ona wykonywana
+
 class XSLBranch : public Instruction {
 	bool isDefaultDefined;
 	ConditionalVec conditionalBranches;
@@ -288,13 +293,13 @@ public:
  */
 class XSLComplex : public Instruction {
 	typedef std::vector<std::pair< String, String> > AttrList;
-	Name name;
+	parsingXML::Name name;
 	NodeVec attrs;
 	InstructionVec children;
 
 public:
 	void print(int d);
-	XSLComplex(const Name & _name, const NodeVec & _attrs,
+	XSLComplex(const parsingXML::Name & _name, const NodeVec & _attrs,
 			const InstructionVec & _children = InstructionVec()):
 				name(_name), attrs(_attrs), children(_children) {};
 	virtual XSLComplex* clone() const { return new XSLComplex(*this);};

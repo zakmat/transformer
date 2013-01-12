@@ -13,15 +13,18 @@
 
 namespace parsingXSLT {
 
+typedef parsingXML::Node Node;
+
 //klasa reprezentuje parser arkusza XSLT,
 //dziedziczy po parserze xml by wykorzystac kilka istniejacych juz regul
 class XSLTParser {
+	//String matchAttribute(const parsingXML::Name& n);
+	//String matchAttribute(const String& n);
+	XSLSymbol matchXSLKeyword(const parsingXML::Name& n);
+	bool validateName(const Node * n, XSLSymbol t);
+	String requiredAttribute(const Node * n, XSLSymbol t);
+	String optionalAttribute(const Node *n, XSLSymbol t, String def_val);
 
-
-	// '</' KEYWORD '>'
-
-	// 'Name' '=' '"' Value '"'
-	String matchNamedAttr(const String & Name, TokSymbol t);
 
 	// Order -> 'order' '=' '"'( 'ascending' | 'descending')'"'
 	OrderVal matchOrderAttr();
@@ -52,53 +55,53 @@ class XSLTParser {
 	std::pair<String, String> Attribute();
 
 	String Comment();
-	XSLText * Text();
+	XSLText * Text(const Node * n);
 
 	// Stylesheet -> '<' STYLESHEET Version { Attribute } '>' { Comment } { Template { Comment} }'</' STYLESHEET '>'
-	XSLTStylesheet * Stylesheet();
+	XSLTStylesheet * Stylesheet(const Node * n);
 
 	// Template -> '<' TEMPLATE (MATCH | NAME) '=' LITERAL ('priority' '=' NUMBER)? '>' Content '</ TEMPLATE '>'
-	XSLTTemplate * Template();
+	XSLTTemplate * Template(const Node * n);
 
 
 	// TLI -> ApplyTemplates | If | Choose | ForEach | ValueOf
-	Instruction * TopLevelInstruction();
+	Instruction * TLI(const Node * n);
 
 	// Content -> { Comment | '<' TopLevelInstruction | Text }
-	InstructionVec Content();
+	InstructionVec Content(const Node * n);
 
 	//FEC -> { '<' Sort | Comment } Content
-	std::pair<SortVec, InstructionVec> ForEachContent();
+	std::pair<SortVec, InstructionVec> ForEachContent(const Node * n);
 
 	//ApplyTemplates -> APPLYTEMPLATES SelectP? ( '/>' | '>' {'<' Sort} '</' APPLYTEMPLATES '>' )
-	XSLApplyTemplates * ApplyTemplates();
+	XSLApplyTemplates * ApplyTemplates(const Node * n);
 
 	//ForEach -> FOREACH SelectP '>' ForEachContent '</' FOREACH '>'
-	XSLRepetition * ForEach();
+	XSLRepetition * ForEach(const Node * n);
 
 	// Sort -> SORT SelectE? ( Order | Datatype )? '/>'
-	XSLSort * Sort();
+	XSLSort * Sort(const Node * n);
 
 	// If -> IF TestE '>' Content '</' IF '>'
-	XSLConditional * IfClause();
+	XSLConditional * IfClause(const Node * n);
 
 	// Choose -> CHOOSE '>' {'<' When } ('<' Otherwise)? '</' CHOOSE '>'
-	XSLBranch * Choose();
+	XSLBranch * Choose(const Node * n);
 
 	//When -> WHEN TestE '>' Content '</' WHEN '>'
-	XSLConditional * When();
+	XSLConditional * When(const Node * n);
 
 	// Otherwise -> OTHERWISE '>' Content '</' OTHERWISE '>'
-	InstructionVec Otherwise();
+	InstructionVec Otherwise(const Node * n);
 
 	// ValueOf -> VALUEOF SelectE '/>'
-	XSLValueOf * ValueOf();
+	XSLValueOf * ValueOf(const Node * n);
 
 	//Complex -> Name { Attribute } ( '/>' | '>' Content '</' Name '>')
-	XSLComplex * ComplexInstruction();
+	XSLComplex * ComplexInstruction(const Node * n);
 
 	// Document -> Prolog {Comment} Stylesheet
-	XSLTStylesheet * Document();
+	XSLTStylesheet * Document(const Node * n);
 
 public:
 	XSLTParser(ILexer * l);

@@ -35,6 +35,10 @@ typedef std::vector<Node *> NodeVec;
 
 class ElementNode;
 
+enum NodeType {ELEMENT, ATTRIBUTE, TEXT, COMMENT};
+enum InstructionType {STYLESHEET = 1, TEMPLATE = 2, APPLYTEMPLATES = 4, VALUEOF = 8,
+	FOREACH = 16, IFCLAUSE = 32, CHOOSE = 64, WHEN = 128, OTHERWISE = 256, SORT = 512};
+
 class Node {
 	static int counter;
 protected:
@@ -59,11 +63,13 @@ public:
 	void setParent(ElementNode * p) {parent = p;};
 	virtual void print(int d, std::ostream& os) const = 0;
 	virtual Name getName() const { return Name("");};
-	virtual bool isElementNode() const { return false; };
-
+	virtual NodeType type() const = 0;
+//	virtual bool isElement() const { return false; };
+//	virtual bool isText() const { return false; };
+//	virtual bool isElement() const { return false; };
 	Node * getRoot();
 
-	virtual void recognizeXSLElement() = 0;
+//	virtual XSLType* recognizeXSLElement() { return NULL;};
 
 	virtual String string() const = 0;
 	virtual Node * clone() const = 0;
@@ -75,14 +81,14 @@ class ElementNode : public Node{
 	NodeVec attrs;
 	NodeVec children;
 public:
-	bool isElementNode() const { return true; };
+	NodeType type() const { return ELEMENT; };
 
 	ElementNode(const Name& n, NodeVec a = NodeVec(), NodeVec c = NodeVec());
 	ElementNode(const ElementNode& rhs);
 	virtual ~ElementNode();
 	void print(int d, std::ostream& os) const;
 
-	void recognizeXSLElement();
+//	XSLType* recognizeXSLElement();
 	String string() const;
 	Name getName() const { return name; };
 	ElementNode* clone() const { return new ElementNode(*this);};
@@ -106,7 +112,10 @@ public:
 	String string() const;
 	Name getName() const  { return name; };
 	AttributeNode * clone() const { return new AttributeNode(*this);};
-	void recognizeXSLElement();
+//	XSLType* recognizeXSLElement();
+
+	NodeType type() const { return ATTRIBUTE; };
+
 };
 
 class TextNode : public Node{
@@ -115,19 +124,22 @@ public:
 	TextNode(const String& t): text(t) {};
 	void print(int d, std::ostream& os) const;
 	String string() const;
-	void recognizeXSLElement(){};
+//	XSLType* recognizeXSLElement(){};
 	TextNode * clone() const { return new TextNode(*this);};
+
+	NodeType type() const { return TEXT; };
 
 };
 
 class CommentNode : public Node {
 	String comment;
 public:
-	void recognizeXSLElement(){};
 	CommentNode(const String& c): comment(c) {};
 	void print(int d, std::ostream& os) const;
 	String string() const { return String();};
 	CommentNode * clone() const { return new CommentNode(*this);};
+
+	NodeType type() const { return COMMENT; };
 };
 
 class XMLTree : public ParsedObject {

@@ -29,9 +29,9 @@ class XMLParser: public IParser {
 
 	//Plain -> ^{ '<' | '</' }
 	TextNode * Plain();
+	TextNode * CData();
 
 	CommentNode * Comment();
-	CommentNode * CData();
 	String Literal();
 protected:
 

@@ -171,7 +171,7 @@ CommentNode * XMLParser::Comment() {
 		return new CommentNode(comment);
 }
 
-CommentNode * XMLParser::CData() {
+TextNode * XMLParser::CData() {
 	accept(OPENCDATA);
 	String cdata;
 	while(symbol!=ENDCDATA) {
@@ -179,7 +179,7 @@ CommentNode * XMLParser::CData() {
 		cdata.append(accepted.lexeme);
 	}
 	accept(ENDCDATA);
-	return new CommentNode(cdata);
+	return new TextNode(cdata);
 }
 
 // { Comment }

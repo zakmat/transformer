@@ -191,7 +191,7 @@ NodeVec ElementNode::getAllChildren() const {
 NodeVec ElementNode::getAllElementChildren() const {
 	NodeVec result;
 	for(NodeVec::const_iterator it = children.begin(); it!=children.end(); ++it) {
-		if((*it)->isElementNode())
+		if((*it)->type()==ELEMENT)
 			result.push_back(*it);
 	}
 	return children;
@@ -218,12 +218,6 @@ ElementNode * Node::getParent() const {
 }
 Node * Node::getCurrent() {
 	return this;
-}
-
-void XMLTree::recognizeXSLKeywords() {
-
-
-	std::for_each(attrs.begin(),attrs.end(), std::bind2nd(std::mem_fun(&Node::setParent), this));
 }
 
 }
