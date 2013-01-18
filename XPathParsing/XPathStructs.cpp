@@ -54,6 +54,7 @@ bool XPathExpression::isRelationalExpr() const {
 }
 
 bool XPathExpression::compareNumbers(double a, double b) const {
+	//std::cout << type;
 	switch(type) {
 	case LT: 	return a<b;
 	case LTE: 	return a<=b;
@@ -125,14 +126,31 @@ bool XPathExpression::boolean(Node * contextNode) const {
 		}
 		//ponizsze 2 przypadki obsluguja sytuacje gry jeden z operandow jest zbiorem wezlow
 		//wowczas porownanie nastepuje z kazdym z wezlow z osobna (wezly konwertowane sa na liczby)
+
 		else if(left->isLocationExpr()) {
-			bool wynik = ((XPathLocationExpression*)left)->compareWithOtherExpr(right, contextNode);
-			std::cout << wynik << '\n';
-			return wynik;
+			double num = right->number(contextNode);
+			NodeVec result = ((XPathLocationExpression*)left)->evaluate(contextNode);
+
+			for(NodeVec::iterator it = result.begin(); it!=result.end(); it++) {
+				if(compareNumbers((*it)->numberValue(),num))
+					return true;
+				}
+			return false;
+
 		}
-		else
+		else {
+			double num = left->number(contextNode);
+			NodeVec result = ((XPathLocationExpression*)right)->evaluate(contextNode);
+
+			for(NodeVec::iterator it = result.begin(); it!=result.end(); it++) {
+				if(compareNumbers((*it)->numberValue(),num))
+					return true;
+				}
+			return false;
 			return ((XPathLocationExpression*)right)->compareWithOtherExpr(left, contextNode);
-			//TODO napisać test case w którym tylko jeden z operandów jest zbiorem ścieżek
+		}
+
+
 	}
 	if(isEqualityExpr()) {
 		/*
@@ -311,7 +329,6 @@ String XPathLocationExpression::string(Node * contextNode) const {
 }
 
 double XPathLocationExpression::number(Node * contextNode) const {
-	std::cout << "postep " << string(contextNode);
 	return getNumericValue(string(contextNode));
 }
 
@@ -320,7 +337,8 @@ bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, Node 
 	NodeVec result = this->evaluate(contextNode);
 
 	for(NodeVec::iterator it = result.begin(); it!=result.end(); it++) {
-		std::cout << (*it)->numberValue() << ' ';
+//		std::cout << (*it)->numberValue() << ' ';
+
 		if(compareNumbers((*it)->numberValue(),num))
 			return true;
 	}
@@ -350,7 +368,7 @@ NodeVec XPathLocationExpression::evaluate(Node * contextNode) const {
 		NodeVec temp = it->evaluate(contextNode);
 		ret = mergeSets(ret,temp);
 	}
-	print2(ret);
+//	print2(ret);
 	return ret;
 }
 

@@ -38,16 +38,25 @@ double getNumericValue(const String& s) {
 		return std::numeric_limits<double>::quiet_NaN();
 	if(i==s.size())
 		return (double)(m ? -integral : integral);
-	unsigned j = s.size()-1;
-	//czesc ulamkowa
-	while(i<j&&isdigit(s[j])) {
-		fractional = 10 * fractional + s[j] - '0';
-		j--;
+	unsigned j=i+1;
+	while(j<s.size()&&isdigit(s[j])) {
+		fractional = fractional * 10 + s[j]-'0';
+		j++;
 	}
-	if(i==j)
-		return (fractional / pow(10,s.size()-1-j) + integral)*(m?-1.0:1.0);
+	if(j==s.size())
+		return (fractional / pow(10,s.size()-i-1) + integral)*(m?-1.0:1.0);
 	else
 		return std::numeric_limits<double>::quiet_NaN();
+//	unsigned j = s.size()-1;
+//	//czesc ulamkowa
+//	while(i<j&&isdigit(s[j])) {
+//		fractional = 10 * (s[j] - '0') + fractional;
+//		j--;
+//	}
+//	if(i==j)
+//		return (fractional / pow(10,s.size()-j) + integral)*(m?-1.0:1.0);
+//	else
+//		return std::numeric_limits<double>::quiet_NaN();
 }
 
 
@@ -65,7 +74,7 @@ int Node::counter = 0;
 //funkcja sprawdzajaca czy wartosc wezla jest numeryczna
 double Node::numberValue()const {
 	String s = string();
-	std::cout << s;
+//	std::cout << s;
 	if(s.compare("Infinity")==0)
 		return std::numeric_limits<double>::infinity();
 	else if(s.compare("-Infinity")==0)
@@ -153,7 +162,14 @@ void AttributeNode::print(int depth, std::ostream& os) const {
 }
 
 String ElementNode::string() const {
-	String s =
+	String s;
+		for(NodeVec::const_iterator it=children.begin(); it!=children.end();++it) {
+			s.append((*it)->string());
+			s.append(" ");
+		}
+		//wycinamy ostatnia spacje
+		s.erase(s.size()-1);
+		return s;
 
 //			getName().string();
 //	for(NodeVec::const_iterator it=attrs.begin(); it!=attrs.end();++it) {
@@ -162,7 +178,7 @@ String ElementNode::string() const {
 //	}
 //	//wycinamy ostatnia spacje
 //	s.erase(s.size()-1);
-	return s;
+//	return s;
 }
 
 String TextNode::string() const {

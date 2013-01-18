@@ -14,7 +14,7 @@ IParser::IParser(ILexer * l): lexer(l) { err = lexer->getErrSymbol();}
 
 void IParser::getNextToken() {
 	awaiting = lexer->matchNextToken();
-	std::cout << "Token found: " << awaiting.lexeme << ' ' << awaiting.symbol << std::endl;
+//	std::cout << "Token found: " << awaiting.lexeme << ' ' << awaiting.symbol << std::endl;
 	symbol = awaiting.symbol;
 }
 

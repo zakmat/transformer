@@ -2,11 +2,12 @@
 <!-- Edited by XMLSpy -->
 <catalog>
 	<cd>
-		<title>Empire Burlesque</title>
+		<title><![CDATA[
+Wszystko<> jest tekstem]]></title>
 		<artist>Bob Dylan</artist>
 		<country>USA</country>
 		<company>Columbia</company>
-		<price>10.90</price>
+		<price>10.95</price>
 		<year>1985</year>
 	</cd>
 	<cd>

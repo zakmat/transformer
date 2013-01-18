@@ -53,7 +53,7 @@ bool XSLTAnalyzer::validateName(const Node * n, XSLSymbol t) {
 
 XSLSymbol XSLTAnalyzer::matchXSLKeyword(const Name& n) {
 	//TODO
-	std::cout << "cycki" << n.string() << '\n';
+	std::cout << "match_keyword " << n.string() << '\n';
 	for (int i = 0; i<KEYWORDSNUM;i++) {
 		if (keywords[i].key==n.string())
 			return keywords[i].symbol;
@@ -63,7 +63,7 @@ XSLSymbol XSLTAnalyzer::matchXSLKeyword(const Name& n) {
 
 void XSLTAnalyzer::xsltError(const String& msg, const Node * n) const {
 	std::cout << msg << ' ';
-	n->string();
+	n->getName().string();
 }
 
 String XSLTAnalyzer::requiredAttribute(const Node * n, XSLSymbol t) {
@@ -90,7 +90,6 @@ String XSLTAnalyzer::optionalAttribute(const Node *n, XSLSymbol t, String def_va
 
 
 LocExpr * XSLTAnalyzer::parseXPath(const String& sequence) {
-	std::cout << "sequence" << sequence;
 	ISource * src = new StringSource(sequence);
 	ILexer * lex = new parsingXPath::XPathLexer(src);
 	LocExpr * pe = parsingXPath::XPathParser(lex).Path();
@@ -120,36 +119,6 @@ XPathExpr * XSLTAnalyzer::parseXPathExpr(const String& sequence) {
 
 	return pe;
 }
-
-/*
-// 'order=' '"' (ASCENDING | DESCENDING) '"'
-OrderVal XSLTAnalyzer::matchOrderAttr() {
-	String o = matchNamedAttr("order",ORDER);
-	if(o=="ascending")
-		return ASCENDING;
-	else if(o=="descending")
-		return DESCENDING;
-	else {
-		semanticError("Nieobslugiwany porzadek sortowania");
-		//zwrocona wartosc domyslna
-		return ASCENDING;
-	}
-}
-
-// 'data-type=' '"' (TEXT | NUMBER) '"'
-DataType XSLTAnalyzer::matchDataTypeAttr() {
-	String t = matchNamedAttr("data-type", DATATYPE);
-	if(t=="text")
-		return TEXT;
-	else if(t=="number")
-		return NUMBER;
-	else {
-		semanticError("Nieobslugiwany typ danych");
-		//zwraca wartosc domyslna
-		return TEXT;
-	}
-}
-*/
 
 
 // Document -> Prolog {Comment} Stylesheet
@@ -244,8 +213,10 @@ XSLApplyTemplates * XSLTAnalyzer::ApplyTemplates(const Node * n) {
 	SortVec sorts;
 
 	String val = optionalAttribute(n,SELECT,"");
-	//if (selected_str!="")
-	selected = parseXPath(val);
+	if (val!="")
+		selected = parseXPath(val);
+	else
+		selected = NULL;
 	NodeVec nodes = n->getAllChildren();
 	if (nodes.size() == 0)
 		return new XSLApplyTemplates(selected);
@@ -260,9 +231,10 @@ XSLApplyTemplates * XSLTAnalyzer::ApplyTemplates(const Node * n) {
 // Sort -> SORT (SelectE)? ( Order | Datatype )? '/>'
 XSLSort * XSLTAnalyzer::Sort(const Node * n) {
 	validateName(n,SORT);
+	XPathExpr * selected;
 
 	String val = optionalAttribute(n, SELECT, ".");
-	XPathExpr * selected = parseXPath(val);
+	selected = parseXPath(val);
 
 	XSLSymbol order= matchXSLKeyword(Name(optionalAttribute(n, ORDER, "ascending")));
 	XSLSymbol type = matchXSLKeyword(Name(optionalAttribute(n, DATATYPE, "text")));
@@ -289,8 +261,7 @@ XSLBranch * XSLTAnalyzer::Choose(const Node * n) {
 	ConditionalVec conds;
 	InstructionVec otherwise;
 
-	//matchXSLKeyword("choose");
-	validateName(n, CHOOSE);
+//	validateName(n, CHOOSE);
 
 	NodeVec nodes = n->getAllChildren();
 	for(int i = 0; i<nodes.size();++i) {
@@ -299,7 +270,7 @@ XSLBranch * XSLTAnalyzer::Choose(const Node * n) {
 		else if(i == nodes.size()-1 && validateName(nodes[i],OTHERWISE))
 			otherwise = Otherwise(nodes[i]);
 		else {
-			//TODO syntax error niedozwolony element xsl
+			xsltError("Blad skladniowy XSL, niespodziewany znacznik: ",n);
 		}
 	}
 
@@ -317,7 +288,7 @@ XSLConditional * XSLTAnalyzer::When(const Node * n) {
 
 // Otherwise -> OTHERWISE '>' Content '</' OTHERWISE '>'
 InstructionVec XSLTAnalyzer::Otherwise(const Node * n) {
-	validateName(n, OTHERWISE);
+//	validateName(n, OTHERWISE);
 	InstructionVec ret = Content(n);
 	return ret;
 }

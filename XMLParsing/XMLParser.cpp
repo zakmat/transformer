@@ -146,9 +146,15 @@ NodeVec XMLParser::Content() {
 TextNode * XMLParser::Plain() {
 	String ret;
 	optional(WS);
-	while(symbol != OPENTAG && symbol != OPENENDTAG) {
-		accept(symbol);
-		ret.append(accepted.lexeme);
+
+
+	while(symbol==OPENCDATA or (symbol != OPENTAG && symbol != OPENENDTAG)) {
+		if (symbol==OPENCDATA)
+			ret.append(CData());
+		else {
+			accept(symbol);
+			ret.append(accepted.lexeme);
+		}
 	}
 	if(ret.size()>0) {
 		return new TextNode(ret);
@@ -170,7 +176,7 @@ CommentNode * XMLParser::Comment() {
 		return new CommentNode(comment);
 }
 
-TextNode * XMLParser::CData() {
+String XMLParser::CData() {
 	accept(OPENCDATA);
 	String cdata;
 	while(symbol!=ENDCDATA) {
@@ -178,7 +184,7 @@ TextNode * XMLParser::CData() {
 		cdata.append(accepted.lexeme);
 	}
 	accept(ENDCDATA);
-	return new TextNode(cdata);
+	return cdata;
 }
 
 // { Comment }

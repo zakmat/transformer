@@ -29,7 +29,7 @@ class XMLParser: public IParser {
 
 	//Plain -> ^{ '<' | '</' }
 	TextNode * Plain();
-	TextNode * CData();
+	String CData();
 
 	CommentNode * Comment();
 	String Literal();
