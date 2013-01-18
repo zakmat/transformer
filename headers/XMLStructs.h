@@ -142,12 +142,16 @@ public:
 	NodeType type() const { return COMMENT; };
 };
 
+class XSLTTemplate;
+typedef std::vector<XSLTTemplate *> TemplateVec;
+
 class XMLTree : public ParsedObject {
 	Node * root;
 
 public:
-	void recognizeXSLElement();
-	void recognizeXSLKeywords();
+	TemplateVec interpretAsStylesheet();
+	//void recognizeXSLElement();
+	//void recognizeXSLKeywords();
 	Node * getRoot() const {return root;};
 	XMLTree(Node * r = NULL):root(r) {};
 	virtual ~XMLTree() { delete root;};

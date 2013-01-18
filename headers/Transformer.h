@@ -28,6 +28,7 @@ class Transformer {
 
 	parsingXSLT::Context getInitialContext() const;
 	parsingXML::XMLTree * parseXML(ISource * document) const;
+	parsingXSLT::XSLTStylesheet * parseXSL(ISource * document) const;
 public:
 	Transformer();
 	~Transformer();

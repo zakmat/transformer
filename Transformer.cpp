@@ -54,27 +54,22 @@ parsingXML::XMLTree * Transformer::parseXML(ISource * document) const {
 	return tree;
 }
 
+parsingXSLT::XSLTStylesheet * Transformer::parseXSL(ISource * document) const {
+	parsingXML::XMLTree *  tree = parseXML(document);
+	return tree->interpretAsStylesheet();
+}
+
 //od teraz loadStyleSheet będzie w pierwszej kolejności korzystał właśnie z fcji loadXML
 void Transformer::loadStyleSheet(char * filename) {
 	this->stylesfname = filename;
 	ISource * xsldoc = new FileStreamSource(stylesfname,verboseMode);
 
-	transformations = recognizeStylesheet(parseXML(xsldoc));
+	transformations = parseXSL(xsldoc);
 	styleErrsDetected = xsldoc->countErrors();
 
 	delete xsldoc;
 
 	std::cout << "Zakonczono wczytywanie arkusza stylow" << std::endl;
-}
-
-parsingXSLT::XSLTStylesheet * Transformer::recognizeStylesheet(parsingXML::XMLTree * tree) {
-
-	tree->getRoot()->recognizeXSLElement();
-	xslParser->validateStructure(tree);
-
-	ParsedObject * pt = xslparser->startParsing();
-
-	return (parsingXSLT::XSLTStylesheet *) pt;
 }
 
 void Transformer::setDestination(char * filename) {

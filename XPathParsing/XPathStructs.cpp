@@ -6,7 +6,7 @@
  */
 
 
-#include <cmath>
+#include <math.h>
 #include <limits>
 #include <sstream>
 #include "XPathStructs.h"
@@ -80,7 +80,9 @@ bool XPathExpression::boolean(xmlNode * contextNode) const {
 	 */
 	if(isArithmeticExpr()) {
 		double result = number(contextNode);
-		return !std::isnan(result) && result!=0;
+		return result!=0;
+		//TODO isnan nie rozpoznawana w tej wersji kompilatora
+		//return !std::isnan(result) && result!=0;
 	}
 	/*
 	 * jesli nadrzednym operatorem jest op. logiczny nastepuje konwersja obu podwyrazen do boolean i obliczenie wyrazenia glownego
@@ -267,7 +269,9 @@ double XPathNegationExpression::number(xmlNode * contextNode) const {
 
 bool XPathNumericExpression::boolean(xmlNode * contextNode) const {
 	double d = getNumericValue(value);
-	return !std::isnan(d) && d!=0.0;
+	return d!=0.0;
+	//TODO isnan nie rozpoznawana w tej wersji kompilatora
+	//return !std::isnan(d) && d!=0.0;
 }
 
 String XPathNumericExpression::string(xmlNode * contextNode) const {
