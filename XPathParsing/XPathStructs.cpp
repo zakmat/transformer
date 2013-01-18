@@ -435,7 +435,7 @@ NodeVec XPath::evaluate(xmlNode * contextNode) const {
 		 *
 		 * rowniez nie ma dopasowania
 		 */
-		else if(!path.at(0).matchElementNodeName(base->getName()) && isDescStep(0)) {
+		else if(!path.at(0).matchElementNodeName(base->getName().string()) && isDescStep(0)) {
 			return NodeVec();
 		}
 		/* przypadek: select="//para..."

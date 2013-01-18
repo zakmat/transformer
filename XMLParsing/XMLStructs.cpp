@@ -220,6 +220,11 @@ Node * Node::getCurrent() {
 	return this;
 }
 
+TemplateVec XMLTree::interpretAsStylesheet() {
+	//TODO start recursively interpret tree
+	;
+}
+
 }
 
 
