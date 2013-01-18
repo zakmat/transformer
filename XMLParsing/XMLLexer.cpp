@@ -94,7 +94,9 @@ Token XMLLexer::recognizeMarkupEnding(Char c) {
 	else if(c == '-' && c2 == '-' && c3 == '>')
 		return Token(ENDCOMMENT, String("-->"));
 	else if(c == '-') {
-	  return Token(MINUS,String(1,c));
+		rollbackChar(c2);
+		rollbackChar(c3);
+		return Token(MINUS,String(1,c));
 	}
 	else {  //(c2!=']') {
 		rollbackChar(c2);

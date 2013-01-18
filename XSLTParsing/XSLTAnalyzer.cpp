@@ -12,8 +12,9 @@
 
 char const * xslTokDesc[MAXSYM] = {
 		"xsl:stylesheet", "xsl:template","xsl:apply-templates", "xsl:value-of",
-		"xsl:for-each", "xsl:if", "xsl:choose", "xsl:when", "xsl:otherwise", "xsl:sort"
-		"name", "match", "priority", "select", "order", "data-type", "test"
+		"xsl:for-each", "xsl:if", "xsl:choose", "xsl:when", "xsl:otherwise", "xsl:sort",
+		"name", "match", "priority", "select", "order", "data-type", "test", "text",
+		"number", "ascending", "descending"
 };
 
 
@@ -52,10 +53,16 @@ bool XSLTAnalyzer::validateName(const Node * n, XSLSymbol t) {
 
 XSLSymbol XSLTAnalyzer::matchXSLKeyword(const Name& n) {
 	//TODO
+	std::cout << "cycki" << n.string() << '\n';
+	for (int i = 0; i<KEYWORDSNUM;i++) {
+		if (keywords[i].key==n.string())
+			return keywords[i].symbol;
+	}
+	return MAXSYM;
 }
 
 void XSLTAnalyzer::xsltError(const String& msg, const Node * n) const {
-	std::cout << msg;
+	std::cout << msg << ' ';
 	n->string();
 }
 
@@ -70,10 +77,13 @@ String XSLTAnalyzer::requiredAttribute(const Node * n, XSLSymbol t) {
 }
 
 String XSLTAnalyzer::optionalAttribute(const Node *n, XSLSymbol t, String def_val) {
+	std::cout << "optional: " << xslTokDesc[t] << ' ' << t;
 	NodeVec result = n->getAttrByName(xslTokDesc[t]);
 		if (result.size()==0) {
+			std::cout << "domyslna: " << def_val << '\n';
 			return def_val;
 		}
+		std::cout << result[0]->string();
 		return result[0]->string();
 	}
 
@@ -141,10 +151,8 @@ DataType XSLTAnalyzer::matchDataTypeAttr() {
 
 // Document -> Prolog {Comment} Stylesheet
 XSLTStylesheet * XSLTAnalyzer::Document(const Node * n) {
-	//XMLParser::Prolog(n);
-	//XMLParser::optionalComment(n);
-	//TODO find stylesheet among children of the root
-	return Stylesheet(n);
+
+	return Stylesheet(n->getAllChildren()[0]);
 }
 
 // Stylesheet -> '<' STYLESHEET Version { Attribute } '>' { Comment } { Template { Comment} }'</' STYLESHEET '>'
@@ -153,9 +161,7 @@ XSLTStylesheet * XSLTAnalyzer::Stylesheet(const Node * n) {
 	//TODO matchAttribute(parsingXML::Name("version"));
 
 	NodeVec templates = n->getAllChildren();
-	TemplateVec ret;//(templates.size(), NULL);
-
-	//std::transform(templates.begin(), templates.end(), ret.begin(), std::mem_fun(&XSLTAnalyzer::Template));
+	TemplateVec ret;
 
 	for(NodeVec::iterator it = templates.begin();it != templates.end();++it)
 		ret.push_back(Template(*it));
@@ -253,16 +259,11 @@ XSLSort * XSLTAnalyzer::Sort(const Node * n) {
 	validateName(n,SORT);
 
 	String val = optionalAttribute(n, SELECT, ".");
-	//String selected_str = matchAttribute("select");
-	//if (selected_str!="")
 	XPathExpr * selected = parseXPath(val);
 
-	OrderVal order = ASCENDING;
-	DataType type = TEXT;
-	//TODO dodac mappingi
-	optionalAttribute(n, ORDER, "ascending");
-	optionalAttribute(n, DATATYPE, "text");
-	//		xsltError("Nieoczekiwany symbol: ", symbol);
+	XSLSymbol order= matchXSLKeyword(Name(optionalAttribute(n, ORDER, "ascending")));
+	XSLSymbol type = matchXSLKeyword(Name(optionalAttribute(n, DATATYPE, "text")));
+	//TODO		xsltError("Nieoczekiwany symbol: ", symbol);
 	//return 0;
 
 	return new XSLSort(selected,order,type);
@@ -319,7 +320,7 @@ InstructionVec XSLTAnalyzer::Otherwise(const Node * n) {
 }
 
 bool isNotSort(const Instruction* i) {
-	return i->type()==SORT;
+	return i->type()!=SORT;
 }
 
 bool isSort(const Instruction* i) {
@@ -340,7 +341,7 @@ XSLRepetition * XSLTAnalyzer::ForEach(const Node * n) {
 	InstructionVec::iterator it = std::find_if(list.begin(),list.end(),isNotSort);
 
 	int size = it - list.begin();
-	SortVec sorts(size,NULL);
+	SortVec sorts;//(size,NULL);
 	//std::copy(list.begin(),it,sorts.begin());
 	for(InstructionVec::iterator it2 = list.begin();it2!=it;++it2)
 		sorts.push_back((XSLSort *)*it2);

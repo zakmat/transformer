@@ -68,6 +68,7 @@ void Transformer::loadStyleSheet(char * filename) {
 
 	transformations = parseXSL(xsldoc);
 	styleErrsDetected = xsldoc->countErrors();
+	transformations->print();
 
 	delete xsldoc;
 

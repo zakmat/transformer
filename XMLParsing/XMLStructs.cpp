@@ -152,8 +152,8 @@ void AttributeNode::print(int depth, std::ostream& os) const {
 }
 
 String ElementNode::string() const {
-	String s;
-	for(NodeVec::const_iterator it=children.begin(); it!=children.end();++it) {
+	String s = getName().string();
+	for(NodeVec::const_iterator it=attrs.begin(); it!=attrs.end();++it) {
 		s.append((*it)->string());
 		s.append(" ");
 	}

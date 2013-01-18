@@ -21,7 +21,7 @@
 
 enum XSLSymbol {
 	STYLESHEET, TEMPLATE, APPLYTEMPLATES, VALUEOF, FOREACH, IFCLAUSE, CHOOSE, WHEN, OTHERWISE, SORT,
-	TEMPLATENAME, MATCH, PRIORITY, SELECT, ORDER, DATATYPE, TEST, MAXSYM
+	TEMPLATENAME, MATCH, PRIORITY, SELECT, ORDER, DATATYPE, TEST, TEXT, NUMBER, ASC, DESC, MAXSYM
 };
 
 const int KEYWORDSNUM = MAXSYM;
@@ -172,8 +172,8 @@ public:
 
 //klasa sort implementuje porzadek rosnacy i malejacy
 //oraz interpretuje typ sortowania jako liczbowy lub leksykograficzny
-enum OrderVal {ASCENDING, DESCENDING};
-enum DataType {TEXT, NUMBER};
+//enum OrderVal {ASCENDING, DESCENDING};
+//enum DataType {TEXT, NUMBER};
 
 class XSLSort : public Instruction {
 //poniewaz do sortowania po wielu kluczach wykorzystuje stable_sort z STLa potrzebny mi byl predykat binarny
@@ -193,18 +193,18 @@ class XSLSort : public Instruction {
 	//sluzy do wyboru klucza domyslnie jest to '.' czyli wywolujemy string na badanym wezle, ale w ogolnosci
 	//moze to byc dowolne wyrazenie XPath
 	XPathExpr * criterion;
-	OrderVal order;
-	DataType type;
+	XSLSymbol order;
+	XSLSymbol type;
 
 
 	String string(const NodeVec& v) const;
 	String string(Node *n) const;
 	bool compare(const String & a, const String &b) const;
 public:
-	OrderVal getOrder()const { return order;};
-	DataType getType() const { return type; };
+	XSLSymbol getOrder()const { return order;};
+	XSLSymbol getType() const { return type; };
 	void print(int d);
-	XSLSort(XPathExpr * _s, OrderVal _o = ASCENDING, DataType _t = TEXT):
+	XSLSort(XPathExpr * _s, XSLSymbol _o = ASC, XSLSymbol _t = TEXT):
 		criterion(_s), order(_o), type(_t) {};
 	XSLSort(const XSLSort& rhs);
 	virtual XSLSort* clone() const { return new XSLSort(*this);};

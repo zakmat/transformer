@@ -28,7 +28,7 @@ struct Name {
 
 	bool operator==(const Name& other) const { return namespaceName == other.namespaceName && localName == other.localName; };
 	bool operator!=(const Name& other) const { return !(*this==other); };
-	String string() const { if (namespaceName == "") return localName; else return namespaceName+":"+"localName";}
+	String string() const { if (namespaceName == "") return localName; else return namespaceName+":"+localName;}
 };
 
 class Node;

@@ -22,13 +22,6 @@ class XSLTAnalyzer {
 	String requiredAttribute(const Node * n, XSLSymbol t);
 	String optionalAttribute(const Node *n, XSLSymbol t, String def_val);
 
-
-	// Order -> 'order' '=' '"'( 'ascending' | 'descending')'"'
-	OrderVal matchOrderAttr();
-
-	// DataType -> 'data-type' '=' '"'(number | text)'"'
-	DataType matchDataTypeAttr();
-
 	// TestE -> 'test' '=' '"' Expression '"'
 	XPathExpr * matchCondition();
 

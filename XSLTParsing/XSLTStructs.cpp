@@ -28,6 +28,10 @@ KeywordMapping keywords[KEYWORDSNUM] = {
 		{"test", TEST},
 		{"xsl:value-of", VALUEOF},
 		{"xsl:otherwise", OTHERWISE},
+		{"text",TEXT},
+		{"number", NUMBER},
+		{"ascending", ASC},
+		{"descending", DESC}
 };
 
 /*
@@ -417,13 +421,13 @@ std::vector<String> XSLSort::extractKeys(Context & c)const {
 
 //funkcja porownuje dwa klucze, wykorzystujac przy tym parametry order i data-type
 bool XSLSort::compare(const String & a, const String &b)const {
-	if(order == ASCENDING && type == TEXT) {
+	if(order == ASC && type == TEXT) {
 		return a.compare(b)<0;
 	}
-	else if((order == DESCENDING) && (type==TEXT)) {
+	else if((order == DESC) && (type==TEXT)) {
 		return b < a;
 	}
-	else if((order == ASCENDING) && (type == NUMBER)) {
+	else if((order == ASC) && (type == NUMBER)) {
 		return getNumericValue(a) < getNumericValue(b);
 	}
 	else {
