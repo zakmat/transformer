@@ -516,10 +516,11 @@ NodeVec Context::instantiateForAll(const InstructionVec &v) {
 	position = 0;
 	while (position<currentList.size()) {
 
-		NodeVec temp = instantiate(v.at(position));
-		for(NodeVec::iterator it = temp.begin();it!=temp.end();++it) {
-				(*it)->print(0,std::cout);
-		}
+		NodeVec temp = instantiate(v);
+		std::cout << "wypisuje temp aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa " << temp.size();
+//		for(NodeVec::iterator it = temp.begin();it!=temp.end();++it) {
+//				(*it)->print(0,std::cout);
+//		}
 		ret.insert(ret.end(),temp.begin(),temp.end());
 		position++;
 	}
