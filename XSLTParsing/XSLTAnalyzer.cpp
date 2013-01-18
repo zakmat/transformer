@@ -32,17 +32,6 @@ int getNumericVal(const String & s) {
 	return m ? -tmp : tmp;
 }
 
-/*
-String XSLTAnalyzer::matchAttribute(const parsingXML::Name& n) {
-	//TODO error handling
-	return node->getAttrByName(n.string());
-}
-
-String XSLTAnalyzer::matchAttribute(const String& n) {
-	//TODO error handling
-	return node->getAttrByName(n);
-}*/
-
 bool XSLTAnalyzer::validateName(const Node * n, XSLSymbol t) {
 	if ( n->getName().string() != xslTokDesc[t]) {
 		xsltError("Blad skladniowy XSL: "+ t, n);
@@ -234,7 +223,7 @@ XSLSort * XSLTAnalyzer::Sort(const Node * n) {
 	XPathExpr * selected;
 
 	String val = optionalAttribute(n, SELECT, ".");
-	selected = parseXPath(val);
+	selected = parseXPathExpr(val);
 
 	XSLSymbol order= matchXSLKeyword(Name(optionalAttribute(n, ORDER, "ascending")));
 	XSLSymbol type = matchXSLKeyword(Name(optionalAttribute(n, DATATYPE, "text")));
@@ -343,7 +332,6 @@ XSLValueOf * XSLTAnalyzer::ValueOf(const Node * n) {
 
 //Complex -> Name { Attribute } ( '/>' | '>' Content '</' Name '>')
 XSLComplex * XSLTAnalyzer::ComplexInstruction(const Node * n) {
-	//TODO ewentualnie sprawdzic czy nie ma slow zakazanych, wpp przepisac bez zmian
 	InstructionVec content = Content(n);
 	return new XSLComplex(n->getName(), n->getAllAttrs(), content);
 }

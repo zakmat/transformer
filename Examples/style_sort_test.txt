@@ -13,8 +13,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <th>Price</th>
       </tr>
       <xsl:for-each select="catalog/cd">
-      <!-- Mozna eksperymentowac z order i data-type, sortowanie po wielu kluczach rowniez dziala-->
-      <xsl:sort select="price" data-type="number"/>
+      <xsl:sort select="artist" data-type="text"/>
       <tr>
         <td><xsl:value-of select="title"/></td>
         <td><xsl:value-of select="artist"/></td>
