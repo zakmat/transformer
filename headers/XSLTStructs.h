@@ -14,8 +14,6 @@
 #include "XMLStructs.h"
 #include "XPathStructs.h"
 
-namespace parsingXSLT {
-
 /*
  * atomy akceptowane przez analizator leksykalny XSLT, dziela sie na dwie grupy, pierwsza z nich to atomy wystepujace
  * rowniez w a.l. dla dokumentow XML, natomiast druga grupa to rozpoznawane slowa kluczowe procesora XSLT
@@ -26,14 +24,14 @@ enum XSLSymbol {
 	TEMPLATENAME, MATCH, PRIORITY, SELECT, ORDER, DATATYPE, TEST, MAXSYM
 };
 
-const int KEYWORDSNUM = MAXSYM - 1;
+const int KEYWORDSNUM = MAXSYM;
 
 struct KeywordMapping {
 		const char * key;
 		XSLSymbol symbol;
 	};
 
-static KeywordMapping keywords[KEYWORDSNUM];
+extern KeywordMapping keywords[KEYWORDSNUM];
 
 	//dla identyfikatorow obliczany jest hash
 	//int calculateHash(const String & sequence) const;
@@ -46,12 +44,12 @@ class XSLTStylesheet;
 class XSLTTemplate;
 class XSLConditional;
 class XSLSort;
+class Node;
 
 typedef parsingXPath::XPathLocationExpression LocExpr;
 typedef parsingXPath::XPathExpression XPathExpr;
 
-typedef parsingXML::Node xmlNode;
-typedef std::vector<parsingXML::Node*> NodeVec;
+typedef std::vector<Node*> NodeVec;
 
 typedef std::vector<XSLTTemplate *> TemplateVec;
 typedef std::vector<Instruction *> InstructionVec;
@@ -101,7 +99,7 @@ public:
 
 	InstructionVec getBody() const {return instructions; };
 	double getPriority() const { return priority; }
-	bool isMatching(xmlNode * path) const;
+	bool isMatching(Node * path) const;
 
 };
 
@@ -119,7 +117,7 @@ public:
 	XSLTStylesheet(const TemplateVec& t);
 	virtual ~XSLTStylesheet();
 
-	XSLTTemplate * findBestFittingTemplate(xmlNode * node) const;
+	XSLTTemplate * findBestFittingTemplate(Node * node) const;
 
 	void print();
 };
@@ -184,8 +182,8 @@ class XSLSort : public Instruction {
 //ponadto xsl:sort choc sortuje wezly to kluczami sa stringi wiec potrzebny byl mi odpowiedni wrapper
 	struct SortWrapper {
 		String val;
-		xmlNode * n;
-		SortWrapper(const String& v, xmlNode * n_): val(v), n(n_) {};
+		Node * n;
+		SortWrapper(const String& v, Node * n_): val(v), n(n_) {};
 	};
 	struct Comparator {
 		const XSLSort * sort;
@@ -200,7 +198,7 @@ class XSLSort : public Instruction {
 
 
 	String string(const NodeVec& v) const;
-	String string(xmlNode *n) const;
+	String string(Node *n) const;
 	bool compare(const String & a, const String &b) const;
 public:
 	OrderVal getOrder()const { return order;};
@@ -293,13 +291,13 @@ public:
  */
 class XSLComplex : public Instruction {
 	typedef std::vector<std::pair< String, String> > AttrList;
-	parsingXML::Name name;
+	Name name;
 	NodeVec attrs;
 	InstructionVec children;
 
 public:
 	void print(int d);
-	XSLComplex(const parsingXML::Name & _name, const NodeVec & _attrs,
+	XSLComplex(const Name & _name, const NodeVec & _attrs,
 			const InstructionVec & _children = InstructionVec()):
 				name(_name), attrs(_attrs), children(_children) {};
 	virtual XSLComplex* clone() const { return new XSLComplex(*this);};
@@ -321,7 +319,7 @@ class Context {
 	NodeVec currentList;
 public:
 	Context(const NodeVec& l, XSLTStylesheet * s): stylesheet(s), position(0), currentList(l) {};
-	xmlNode * getCurrent() const;
+	Node * getCurrent() const;
 	int getPosition() const;
 	void setPosition(int i) {position = i; };
 	int getSize() const;
@@ -339,7 +337,5 @@ public:
 	XSLTStylesheet * getStylesheet() const {return stylesheet;};
 };
 
-
-}
 
 #endif /* XSLTSTRUCTS_H_ */

@@ -8,9 +8,8 @@
 
 #include "XMLParser.h"
 
-namespace parsingXML {
 
-char const * xmlTokDesc[MAXSYM] = {
+char const * xmlTokDesc[MAXSYMXML] = {
 		"<", "</" , "<?", "comment", ">", "/>", "?>", "=", ";", "ident", "literal",
 		"ident2", "whitespace", "unknown"
 };
@@ -130,7 +129,7 @@ NodeVec XMLParser::Content() {
 		if(symbol==OPENTAG) {
 			ret.push_back(Element());
 		}
-		else if(symbol==COMMENT) {
+		else if(symbol==OPENCOMMENT) {
 			ret.push_back(Comment());
 		}
 		else {
@@ -192,4 +191,3 @@ void XMLParser::optionalComment() {
 	}
 }
 
-}

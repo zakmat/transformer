@@ -15,8 +15,8 @@
 namespace parsingXPath {
 
 //przydatne typedefy
-typedef parsingXML::Node xmlNode;
-typedef std::vector<xmlNode *> NodeVec;
+
+typedef std::vector<Node *> NodeVec;
 
 
 
@@ -49,9 +49,9 @@ protected:
 public:
 	//W XPath w wersji 1.0 wystepuja 4 podstawowe typy: boolean, string, number i nodeset
 	//ponizsze funkcje umozliwiaja konwersje wyrazenia do typow prostych
-	virtual bool boolean(xmlNode * contextNode) const;
-	virtual String string(xmlNode * contextNode) const;
-	virtual double number(xmlNode * contextNode) const;
+	virtual bool boolean(Node * contextNode) const;
+	virtual String string(Node * contextNode) const;
+	virtual double number(Node * contextNode) const;
 
 	//ponizsze funkcje wirtualne maja na celu ustalenie z jakim rodzajem wyrazenia mamy do czynienia
 	virtual bool isNumericExpr() const;
@@ -76,9 +76,9 @@ public:
 class XPathNegationExpression : public XPathExpression{
 	XPathExpression * arg;
 public:
-	bool boolean(xmlNode * contextNode) const;
-	String string(xmlNode * contextNode) const;
-	double number(xmlNode * contextNode) const;
+	bool boolean(Node * contextNode) const;
+	String string(Node * contextNode) const;
+	double number(Node * contextNode) const;
 
 
 	bool isNumericExpr() const{return false;};
@@ -95,9 +95,9 @@ public:
 class XPathNumericExpression: public XPathExpression {
 	String value;
 public:
-	bool boolean(xmlNode * contextNode) const;
-	String string(xmlNode * contextNode) const;
-	double number(xmlNode * contextNode) const;
+	bool boolean(Node * contextNode) const;
+	String string(Node * contextNode) const;
+	double number(Node * contextNode) const;
 
 	bool isNumericExpr() const{return true;};
 	bool isBooleanExpr() const{return false;};
@@ -111,9 +111,9 @@ public:
 class XPathLiteralExpression: public XPathExpression {
 	String value;
 public:
-	bool boolean(xmlNode * contextNode) const;
-	String string(xmlNode * contextNode) const;
-	double number(xmlNode * contextNode) const;
+	bool boolean(Node * contextNode) const;
+	String string(Node * contextNode) const;
+	double number(Node * contextNode) const;
 
 	bool isNumericExpr() const {return false;};
 	bool isBooleanExpr() const {return false;};
@@ -130,22 +130,22 @@ class XPathLocationExpression: public XPathExpression {
 	std::vector<XPath> paths;
 
 public:
-	bool boolean(xmlNode * contextNode) const;
-	String string(xmlNode * contextNode) const;
-	double number(xmlNode * contextNode) const;
+	bool boolean(Node * contextNode) const;
+	String string(Node * contextNode) const;
+	double number(Node * contextNode) const;
 
 	bool isNumericExpr() const {return false;};
 	bool isBooleanExpr() const {return false;};
 	bool isLocationExpr() const{return true;};
 
-	bool compareWithOtherExpr(XPathExpression * other, xmlNode * contextNode) const;
+	bool compareWithOtherExpr(XPathExpression * other, Node * contextNode) const;
 
 	//funkcja sprawdza czy wezel kontekstowy mozna dopasowac do sciezki
 	//(uzywana jest podczas dopasowywania template'ow)
-	bool match(xmlNode * contextNode) const;
+	bool match(Node * contextNode) const;
 
 	//funkcja oblicza wezly do jakich mozna dojsc z wezla kontekstowego z pomoca sciezek z tego wyrazenia
-	NodeVec evaluate(xmlNode * contextNode) const;
+	NodeVec evaluate(Node * contextNode) const;
 
 	//jako ze zbiory wezlow uzyskane podczas ewaluacji poszczegolnych sciezek moga posiadac niezerowa czesc wspolna
 	//nalezy zapewnic sposob ich laczenia, ponadto funkcja zwraca wezly w porzadku dokumentu
@@ -203,8 +203,8 @@ public:
 	void branchToAllDescendants();
 
 	//match i evaluate maja to samo znaczenie co w XPathLocationExpression,
-	bool match(xmlNode * contextNode) const;
-	NodeVec evaluate(xmlNode * contextNode) const;
+	bool match(Node * contextNode) const;
+	NodeVec evaluate(Node * contextNode) const;
 
 	void print() const;
 };
@@ -214,7 +214,7 @@ public:
  */
 class DocumentOrderComparator {
 public:
-	bool operator()(xmlNode * a, xmlNode * b) {
+	bool operator()(Node * a, Node * b) {
 		return a->getNumber() < b->getNumber();
 	}
 };

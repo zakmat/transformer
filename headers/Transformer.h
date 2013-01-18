@@ -19,16 +19,16 @@ class Transformer {
 	char * stylesfname;
 	char * destfname;
 
-	parsingXML::XMLTree * source;
+	XMLTree * source;
 	int sourceErrsDetected;
-	parsingXSLT::XSLTStylesheet * transformations;
+	XSLTStylesheet * transformations;
 	int styleErrsDetected;
 
-	std::vector<parsingXML::Node *> result;
+	std::vector<Node *> result;
 
-	parsingXSLT::Context getInitialContext() const;
-	parsingXML::XMLTree * parseXML(ISource * document) const;
-	parsingXSLT::XSLTStylesheet * parseXSL(ISource * document) const;
+	Context getInitialContext() const;
+	XMLTree * parseXML(ISource * document) const;
+	XSLTStylesheet * parseXSL(ISource * document) const;
 public:
 	Transformer();
 	~Transformer();

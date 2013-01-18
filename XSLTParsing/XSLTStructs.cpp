@@ -7,7 +7,7 @@
 
 #include "XSLTStructs.h"
 
-namespace parsingXSLT {
+
 
 //kolejnosc slow kluczowych zostala ustalona eksperymentalnie
 KeywordMapping keywords[KEYWORDSNUM] = {
@@ -98,7 +98,7 @@ void XSLTTemplate::print() {
 }
 
 //sprawdza czy sciezka pasuje do wezla
-bool XSLTTemplate::isMatching(xmlNode * n) const {
+bool XSLTTemplate::isMatching(Node * n) const {
 	return pattern->match(n);
 }
 
@@ -122,7 +122,7 @@ void XSLTStylesheet::print() {
 
 //funkcja wybiera 'najlepiej' pasujacy wzorzec, tj taki o najwyzszym priorytecie, w przypadku rownego bierze ostatni
 //napotkany
-XSLTTemplate * XSLTStylesheet::findBestFittingTemplate(xmlNode * contextNode) const {
+XSLTTemplate * XSLTStylesheet::findBestFittingTemplate(Node * contextNode) const {
 	XSLTTemplate * ret = NULL;
 
 	for(TemplateVec::const_iterator it = templates.begin(); it!=templates.end(); it++) {
@@ -213,7 +213,7 @@ XSLConditional::~XSLConditional() {
 }
 
 void XSLComplex::print(int d) {
-	indent(d); std::cout <<"COMPLEX " << name << '\n';
+	indent(d); std::cout <<"COMPLEX " << name.string() << '\n';
 	for(InstructionVec::iterator it = children.begin();it!=children.end();++it) {
 		(*it)->print(d+1);
 		std::cout << '\n';
@@ -336,7 +336,7 @@ NodeVec XSLComplex::evaluate(const Context& context)const{
 	NodeVec retChildren = context.instantiate(children);
 
 	NodeVec result;
-	result.push_back(new parsingXML::ElementNode(this->name, retAttrs, retChildren));
+	result.push_back(new ElementNode(this->name, retAttrs, retChildren));
 	return result;
 }
 
@@ -435,7 +435,7 @@ bool XSLSort::compare(const String & a, const String &b)const {
 NodeVec XSLText::evaluate(const Context & context) const {
 	NodeVec ret;
 
-	xmlNode * n = new parsingXML::TextNode(this->text);
+	Node * n = new TextNode(this->text);
 	ret.push_back(n);
 	return ret;
 }
@@ -449,13 +449,13 @@ NodeVec XSLValueOf::evaluate(const Context & context) const{
 		return NodeVec();
 
 	NodeVec ret;
-	ret.push_back(new parsingXML::TextNode(result));
+	ret.push_back(new TextNode(result));
 	return ret;
 }
 
 
 
-xmlNode * Context::getCurrent() const {
+Node * Context::getCurrent() const {
 	return currentList.at(position);
 }
 int Context::getPosition() const {
@@ -528,4 +528,4 @@ NodeVec Context::proccess() {
 	return resultTree;
 }
 
-}
+

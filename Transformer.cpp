@@ -15,7 +15,7 @@
 
 #include "XSLTParser.h"
 
-using parsingXSLT::Context;
+
 
 Transformer::Transformer(): source(0), transformations(0) {
 }
@@ -37,13 +37,13 @@ void Transformer::loadXMLSource(char * filename) {
 	delete xmldoc;
 }
 
-parsingXML::XMLTree * Transformer::parseXML(ISource * document) const {
-	ILexer * xmllex = new parsingXML::XMLLexer(document);
-	IParser * xmlparser = new parsingXML::XMLParser(xmllex);
+XMLTree * Transformer::parseXML(ISource * document) const {
+	ILexer * xmllex = new XMLLexer(document);
+	IParser * xmlparser = new XMLParser(xmllex);
 
 	std::cout << "Rozpoczeto parsowanie dokumentu zrodlowego" << std::endl;
 
-	parsingXML::XMLTree * tree = (parsingXML::XMLTree *) xmlparser->startParsing();
+	XMLTree * tree = (XMLTree *) xmlparser->startParsing();
 	std::cout << "Zakonczono parsowanie dokumentu zrodlowego" << std::endl;
 
 	//parsingXML::XMLTree * source = (parsingXML::XMLTree *) pt;
@@ -54,8 +54,8 @@ parsingXML::XMLTree * Transformer::parseXML(ISource * document) const {
 	return tree;
 }
 
-parsingXSLT::XSLTStylesheet * Transformer::parseXSL(ISource * document) const {
-	parsingXML::XMLTree *  tree = parseXML(document);
+XSLTStylesheet * Transformer::parseXSL(ISource * document) const {
+	XMLTree *  tree = parseXML(document);
 	return tree->interpretAsStylesheet();
 }
 
@@ -76,9 +76,9 @@ void Transformer::setDestination(char * filename) {
 	this->destfname = filename;
 }
 
-parsingXSLT::Context Transformer::getInitialContext() const {
-	std::vector<parsingXML::Node *> temp(1,source->getRoot());
-	return parsingXSLT::Context(temp, transformations);
+Context Transformer::getInitialContext() const {
+	std::vector<Node *> temp(1,source->getRoot());
+	return Context(temp, transformations);
 }
 
 
@@ -91,7 +91,7 @@ void Transformer::generateResultTree() {
 void Transformer::writeResultToFile(char * fname) {
 	std::ofstream myfile;
 	myfile.open (destfname);
-	std::vector<parsingXML::Node *>::iterator it;
+	std::vector<Node *>::iterator it;
 	for(it= result.begin(); it!=result.end();++it) {
 		(*it)->print(0,myfile);
 		if(verboseMode)

@@ -12,9 +12,9 @@
 #include "XMLLexer.h"
 #include "XMLStructs.h"
 
-namespace parsingXML {
 
-extern const char * xmlTokDesc[MAXSYM];
+
+extern const char * xmlTokDesc[MAXSYMXML];
 
 //klasa parsera dokumentow XML, metody prywatne i chronione to poszczegolne reguly
 class XMLParser: public IParser {
@@ -53,6 +53,5 @@ public:
 	virtual ParsedObject * startParsing();
 };
 
-}
 
 #endif /* XMLPARSER_H_ */

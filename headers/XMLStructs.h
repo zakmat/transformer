@@ -14,7 +14,7 @@
 
 double getNumericValue(const String& s);
 
-namespace parsingXML {
+
 
 struct Name {
 	String namespaceName;
@@ -35,9 +35,9 @@ typedef std::vector<Node *> NodeVec;
 
 class ElementNode;
 
-enum NodeType {ELEMENT, ATTRIBUTE, TEXT, COMMENT};
-enum InstructionType {STYLESHEET = 1, TEMPLATE = 2, APPLYTEMPLATES = 4, VALUEOF = 8,
-	FOREACH = 16, IFCLAUSE = 32, CHOOSE = 64, WHEN = 128, OTHERWISE = 256, SORT = 512};
+enum NodeType {ELEMENTTYPE, ATTRIBUTETYPE, TEXTTYPE, COMMENTTYPE};
+//enum InstructionType {STYLESHEET = 1, TEMPLATE = 2, APPLYTEMPLATES = 4, VALUEOF = 8,
+//	FOREACH = 16, IFCLAUSE = 32, CHOOSE = 64, WHEN = 128, OTHERWISE = 256, SORT = 512};
 
 class Node {
 	static int counter;
@@ -81,7 +81,7 @@ class ElementNode : public Node{
 	NodeVec attrs;
 	NodeVec children;
 public:
-	NodeType type() const { return ELEMENT; };
+	NodeType type() const { return ELEMENTTYPE; };
 
 	ElementNode(const Name& n, NodeVec a = NodeVec(), NodeVec c = NodeVec());
 	ElementNode(const ElementNode& rhs);
@@ -114,7 +114,7 @@ public:
 	AttributeNode * clone() const { return new AttributeNode(*this);};
 //	XSLType* recognizeXSLElement();
 
-	NodeType type() const { return ATTRIBUTE; };
+	NodeType type() const { return ATTRIBUTETYPE; };
 
 };
 
@@ -127,7 +127,7 @@ public:
 //	XSLType* recognizeXSLElement(){};
 	TextNode * clone() const { return new TextNode(*this);};
 
-	NodeType type() const { return TEXT; };
+	NodeType type() const { return TEXTTYPE; };
 
 };
 
@@ -139,17 +139,19 @@ public:
 	String string() const { return String();};
 	CommentNode * clone() const { return new CommentNode(*this);};
 
-	NodeType type() const { return COMMENT; };
+	NodeType type() const { return COMMENTTYPE; };
 };
 
-class XSLTTemplate;
-typedef std::vector<XSLTTemplate *> TemplateVec;
+class XSLTStylesheet;
+class XSLTParser;
 
 class XMLTree : public ParsedObject {
+	friend class XSLTParser;
 	Node * root;
 
 public:
-	TemplateVec interpretAsStylesheet();
+	XSLTStylesheet * interpretAsStylesheet();
+	void pruneComments() {};
 	//void recognizeXSLElement();
 	//void recognizeXSLKeywords();
 	Node * getRoot() const {return root;};
@@ -161,7 +163,5 @@ public:
 		std::cout << std::endl;
 	}
 };
-
-}
 
 #endif /* XMLSTRUCTS_H_ */

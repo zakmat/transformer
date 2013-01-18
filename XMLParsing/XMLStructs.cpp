@@ -6,6 +6,7 @@
  */
 
 #include "XMLStructs.h"
+#include "XSLTParser.h"
 #include <algorithm>
 #include <functional>
 #include <limits>
@@ -48,7 +49,6 @@ double getNumericValue(const String& s) {
 }
 
 
-namespace parsingXML {
 
 
 template<typename T>
@@ -191,7 +191,7 @@ NodeVec ElementNode::getAllChildren() const {
 NodeVec ElementNode::getAllElementChildren() const {
 	NodeVec result;
 	for(NodeVec::const_iterator it = children.begin(); it!=children.end(); ++it) {
-		if((*it)->type()==ELEMENT)
+		if((*it)->type()==ELEMENTTYPE)
 			result.push_back(*it);
 	}
 	return children;
@@ -220,11 +220,12 @@ Node * Node::getCurrent() {
 	return this;
 }
 
-TemplateVec XMLTree::interpretAsStylesheet() {
+XSLTStylesheet * XMLTree::interpretAsStylesheet() {
 	//TODO start recursively interpret tree
-	;
-}
-
+	XSLTParser p;
+	pruneComments();
+	return p.Document(root);
+	//return parsingXSLT::XSLTParser::Stylesheet(root);
 }
 
 

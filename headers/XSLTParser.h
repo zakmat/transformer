@@ -11,16 +11,12 @@
 #include "XMLParser.h"
 #include "XSLTStructs.h"
 
-namespace parsingXSLT {
-
-typedef parsingXML::Node Node;
-
 //klasa reprezentuje parser arkusza XSLT,
 //dziedziczy po parserze xml by wykorzystac kilka istniejacych juz regul
-class XSLTParser {
+class XSLTParser : IParser {
 	//String matchAttribute(const parsingXML::Name& n);
 	//String matchAttribute(const String& n);
-	XSLSymbol matchXSLKeyword(const parsingXML::Name& n);
+	XSLSymbol matchXSLKeyword(const Name& n);
 	bool validateName(const Node * n, XSLSymbol t);
 	String requiredAttribute(const Node * n, XSLSymbol t);
 	String optionalAttribute(const Node *n, XSLSymbol t, String def_val);
@@ -100,16 +96,16 @@ class XSLTParser {
 	//Complex -> Name { Attribute } ( '/>' | '>' Content '</' Name '>')
 	XSLComplex * ComplexInstruction(const Node * n);
 
-	// Document -> Prolog {Comment} Stylesheet
-	XSLTStylesheet * Document(const Node * n);
 
 public:
+	XSLTParser(): IParser(NULL) {};
 	XSLTParser(ILexer * l);
 	virtual ~XSLTParser() {};
 
+	// Document -> Prolog {Comment} Stylesheet
+	XSLTStylesheet * Document(const Node * n);
 	virtual ParsedObject * startParsing();
 };
 
-}
 
 #endif /* XSLTPARSER_H_ */

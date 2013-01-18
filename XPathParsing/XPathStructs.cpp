@@ -73,7 +73,7 @@ bool XPathExpression::compareStrings(const String &a, const String&b) const {
 	}
 }
 
-bool XPathExpression::boolean(xmlNode * contextNode) const {
+bool XPathExpression::boolean(Node * contextNode) const {
 
 	/*
 	 * zgodnie ze specyfikacja jesli wyrazenie posiada operator arytmetyczny to dokonuje konwersji i oblicza wynik
@@ -219,7 +219,7 @@ bool XPathExpression::boolean(xmlNode * contextNode) const {
 
 }
 
-double XPathExpression::number(xmlNode * contextNode) const {
+double XPathExpression::number(Node * contextNode) const {
 	if(isArithmeticExpr()) {
 		double l = left->number(contextNode);
 		double r = right->number(contextNode);
@@ -235,7 +235,7 @@ double XPathExpression::number(xmlNode * contextNode) const {
 	}
 }
 
-String XPathExpression::string(xmlNode * contextNode) const {
+String XPathExpression::string(Node * contextNode) const {
 	if(isBooleanExpr())
 		return boolean(contextNode)?"true":"false";
 	else if(isNumericExpr()) {
@@ -257,48 +257,48 @@ String XPathExpression::string(xmlNode * contextNode) const {
 	return "Nie rozpoznano stringa";
 }
 
-bool XPathNegationExpression::boolean(xmlNode * contextNode) const {
+bool XPathNegationExpression::boolean(Node * contextNode) const {
 	return !arg->boolean(contextNode);
 }
-String XPathNegationExpression::string(xmlNode * contextNode) const {
+String XPathNegationExpression::string(Node * contextNode) const {
 	return boolean(contextNode)?"true":"false";
 }
-double XPathNegationExpression::number(xmlNode * contextNode) const {
+double XPathNegationExpression::number(Node * contextNode) const {
 	return boolean(contextNode)? 1.0 : 0.0;
 }
 
-bool XPathNumericExpression::boolean(xmlNode * contextNode) const {
+bool XPathNumericExpression::boolean(Node * contextNode) const {
 	double d = getNumericValue(value);
 	return d!=0.0;
 	//TODO isnan nie rozpoznawana w tej wersji kompilatora
 	//return !std::isnan(d) && d!=0.0;
 }
 
-String XPathNumericExpression::string(xmlNode * contextNode) const {
+String XPathNumericExpression::string(Node * contextNode) const {
 	return value;
 }
-double XPathNumericExpression::number(xmlNode * contextNode) const {
+double XPathNumericExpression::number(Node * contextNode) const {
 	return getNumericValue(value);
 }
 
-bool XPathLiteralExpression::boolean(xmlNode * contextNode) const {
+bool XPathLiteralExpression::boolean(Node * contextNode) const {
 	return value.size()!=0;
 }
 
-String XPathLiteralExpression::string(xmlNode * contextNode) const {
+String XPathLiteralExpression::string(Node * contextNode) const {
 	return value;
 }
 
-double XPathLiteralExpression::number(xmlNode * contextNode) const {
+double XPathLiteralExpression::number(Node * contextNode) const {
 	return getNumericValue(value);
 }
 
-bool XPathLocationExpression::boolean(xmlNode * contextNode) const {
+bool XPathLocationExpression::boolean(Node * contextNode) const {
 	NodeVec r = evaluate(contextNode);
 	return r.size() > 0;
 }
 
-String XPathLocationExpression::string(xmlNode * contextNode) const {
+String XPathLocationExpression::string(Node * contextNode) const {
 	NodeVec v = evaluate(contextNode);
 
 	if (v.size()==0)
@@ -307,11 +307,11 @@ String XPathLocationExpression::string(xmlNode * contextNode) const {
 		return v.at(0)->string();
 }
 
-double XPathLocationExpression::number(xmlNode * contextNode) const {
+double XPathLocationExpression::number(Node * contextNode) const {
 	return getNumericValue(string(contextNode));
 }
 
-bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, xmlNode * contextNode) const {
+bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, Node * contextNode) const {
 	double num = other->number(contextNode);
 	NodeVec result = this->evaluate(contextNode);
 
@@ -322,7 +322,7 @@ bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, xmlNo
 	return false;
 }
 
-bool XPathLocationExpression::match(xmlNode * contextNode) const {
+bool XPathLocationExpression::match(Node * contextNode) const {
 	for(std::vector<XPath>::const_iterator it=paths.begin(); it!=paths.end(); it++) {
 		if(it->match(contextNode))
 			return true;
@@ -338,7 +338,7 @@ void print2(NodeVec v) {
 }
 
 
-NodeVec XPathLocationExpression::evaluate(xmlNode * contextNode) const {
+NodeVec XPathLocationExpression::evaluate(Node * contextNode) const {
 	NodeVec ret;
 	//oblicz rezultaty dla poszczegolnych sciezek i polacz je
 	for(std::vector<XPath>::const_iterator it=paths.begin(); it!=paths.end(); it++) {
@@ -362,13 +362,13 @@ NodeVec XPathLocationExpression::mergeSets(const NodeVec& v1, const NodeVec& v2)
 }
 
 //funkcja sprawdza czy mozna dopasowac wezel do sciezki
-bool XPath::match(xmlNode * contextNode) const {
+bool XPath::match(Node * contextNode) const {
 	/* wezel pasuje do wzorca o ile istnieje kontekst dla ktorego
 	 * po ewaluacji sciezki wynikowy zbior wezlow bedzie zawierac wezel testowany
 	 *
 	 * (kontekstem mozeby sam testowany wezel lub jego dowolny przodek)
 	 */
-	xmlNode * base = contextNode;
+	Node * base = contextNode;
 	//	NodeVec result = evaluate(contextNode);
 	while(base) {
 		NodeVec result = evaluate(base);
@@ -404,7 +404,7 @@ void XPath::print() const {
 }
 
 //funkcja zwraca wektor wezlow z do ktorych mozna dotrzec spacerujac sciezka
-NodeVec XPath::evaluate(xmlNode * contextNode) const {
+NodeVec XPath::evaluate(Node * contextNode) const {
 	NodeVec ret;
 	NodeVec matchedSoFar;
 
@@ -415,7 +415,7 @@ NodeVec XPath::evaluate(xmlNode * contextNode) const {
 		//dalsza czesc jest wspolna dla obu przypadkow, wiec znajduje sie za blokiem else
 	}
 	else {//sciezka jest absolutna
-		xmlNode * base = contextNode->getRoot();
+		Node * base = contextNode->getRoot();
 
 		/* przypadek: select="/"
 		 * w specyfikacji XPath slash oznacza korzen tj wezel gdzie obok

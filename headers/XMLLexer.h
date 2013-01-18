@@ -10,14 +10,13 @@
 
 #include "ILexer.h"
 
-namespace parsingXML {
 
 /*
  * Atomy leksykalne wykorzystywane podczas analizy pliku XML
  */
 enum XMLSymbol {
 	OPENTAG, OPENENDTAG, OPENPI, OPENCDATA, OPENCOMMENT, CLOSETAG, ENDEMPTYELEM, ENDPI,
-	ENDCDATA, ENDCOMMENT, EQUALOP, MINUS, COLON, LITERAL, ID, WS, OTHER, MAXSYM
+	ENDCDATA, ENDCOMMENT, EQUALOP, MINUS, COLON, LITERAL, ID, WS, OTHER, MAXSYMXML
 };
 
 
@@ -31,9 +30,7 @@ class XMLLexer: public ILexer {
 public:
 	XMLLexer(ISource * src): ILexer(src) {};
 	virtual Token matchNextToken();
-	int getErrSymbol() {return MAXSYM;}
+	int getErrSymbol() {return MAXSYMXML;}
 };
-
-}
 
 #endif /* XMLLEXER_H_ */
