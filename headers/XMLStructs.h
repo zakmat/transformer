@@ -12,6 +12,8 @@
 #include <vector>
 
 
+bool isNull(void * p);
+
 double getNumericValue(const String& s);
 
 
@@ -54,6 +56,7 @@ public:
 	virtual NodeVec getChildrenByName(const String& n) const {return NodeVec();};
 	virtual NodeVec getTextChildren() const {return NodeVec();};
 	virtual NodeVec getAllChildren() const {return NodeVec();};
+	virtual void setChildren(const NodeVec& c ) {};
 	virtual NodeVec getAllElementChildren() const {return NodeVec();};
 	virtual NodeVec getAttrByName(const String& n) const {return NodeVec();};
 	virtual NodeVec getAllAttrs() const {return NodeVec(); };
@@ -64,10 +67,8 @@ public:
 	virtual void print(int d, std::ostream& os) const = 0;
 	virtual Name getName() const { return Name("");};
 	virtual NodeType type() const = 0;
-//	virtual bool isElement() const { return false; };
-//	virtual bool isText() const { return false; };
-//	virtual bool isElement() const { return false; };
 	Node * getRoot();
+	void pruneComments();
 
 //	virtual XSLType* recognizeXSLElement() { return NULL;};
 
@@ -100,6 +101,7 @@ public:
 	NodeVec getAllElementChildren() const;
 	NodeVec getAttrByName(const String& n) const;
 	NodeVec getAllAttrs() const;
+	virtual void setChildren(const NodeVec& c ){children = c;};
 
 };
 
@@ -143,7 +145,6 @@ public:
 };
 
 class XSLTStylesheet;
-class XSLTParser;
 
 class XMLTree : public ParsedObject {
 	friend class XSLTParser;
@@ -151,7 +152,7 @@ class XMLTree : public ParsedObject {
 
 public:
 	XSLTStylesheet * interpretAsStylesheet();
-	void pruneComments() {};
+	void pruneComments();
 	//void recognizeXSLElement();
 	//void recognizeXSLKeywords();
 	Node * getRoot() const {return root;};

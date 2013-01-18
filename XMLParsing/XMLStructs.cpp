@@ -6,11 +6,13 @@
  */
 
 #include "XMLStructs.h"
-#include "XSLTParser.h"
+#include "XSLTAnalyzer.h"
 #include <algorithm>
 #include <functional>
 #include <limits>
 #include <cmath>
+
+bool isNull(void * p) { return p==NULL; }
 
 
 double getNumericValue(const String& s) {
@@ -220,10 +222,29 @@ Node * Node::getCurrent() {
 	return this;
 }
 
+void Node::pruneComments() {
+	if(type()==ELEMENTTYPE) {
+		NodeVec children = getAllChildren();
+		for (NodeVec::iterator it = children.begin();it!=children.end();++it) {
+			if ((*it)->type()==COMMENTTYPE) {
+				delete (*it);
+				(*it) = NULL;
+			}
+			else {
+				(*it)->pruneComments();
+			}
+		}
+		NodeVec::iterator nEnd = std::remove_if(children.begin(),children.end(),isNull);
+		children.resize(nEnd - children.begin());
+		setChildren(children);
+	}
+
+}
+
 XSLTStylesheet * XMLTree::interpretAsStylesheet() {
 	//TODO start recursively interpret tree
-	XSLTParser p;
-	pruneComments();
+	XSLTAnalyzer p;
+	getRoot()->pruneComments();
 	return p.Document(root);
 	//return parsingXSLT::XSLTParser::Stylesheet(root);
 }

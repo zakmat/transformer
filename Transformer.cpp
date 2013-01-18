@@ -13,7 +13,7 @@
 #include "XMLLexer.h"
 #include "XMLParser.h"
 
-#include "XSLTParser.h"
+#include "XSLTAnalyzer.h"
 
 
 
@@ -45,6 +45,8 @@ XMLTree * Transformer::parseXML(ISource * document) const {
 
 	XMLTree * tree = (XMLTree *) xmlparser->startParsing();
 	std::cout << "Zakonczono parsowanie dokumentu zrodlowego" << std::endl;
+
+	tree->printToConsole();
 
 	//parsingXML::XMLTree * source = (parsingXML::XMLTree *) pt;
 

@@ -1,21 +1,22 @@
 /*
  * Parser plików XML oraz wykonanie przekształcenia XSLT
- * XSLTParser.h
+ * XSLTAnalyzer.h
  *
  * Autor: Mateusz Zak
  */
 
-#ifndef XSLTPARSER_H_
-#define XSLTPARSER_H_
+#ifndef XSLTAnalyzer_H_
+#define XSLTAnalyzer_H_
 
 #include "XMLParser.h"
 #include "XSLTStructs.h"
 
 //klasa reprezentuje parser arkusza XSLT,
 //dziedziczy po parserze xml by wykorzystac kilka istniejacych juz regul
-class XSLTParser : IParser {
+class XSLTAnalyzer {
 	//String matchAttribute(const parsingXML::Name& n);
 	//String matchAttribute(const String& n);
+	void xsltError(const String& msg, const Node * n) const;
 	XSLSymbol matchXSLKeyword(const Name& n);
 	bool validateName(const Node * n, XSLSymbol t);
 	String requiredAttribute(const Node * n, XSLSymbol t);
@@ -98,14 +99,14 @@ class XSLTParser : IParser {
 
 
 public:
-	XSLTParser(): IParser(NULL) {};
-	XSLTParser(ILexer * l);
-	virtual ~XSLTParser() {};
+	XSLTAnalyzer() {};
+	XSLTAnalyzer(ILexer * l);
+	virtual ~XSLTAnalyzer() {};
 
 	// Document -> Prolog {Comment} Stylesheet
 	XSLTStylesheet * Document(const Node * n);
-	virtual ParsedObject * startParsing();
+
 };
 
 
-#endif /* XSLTPARSER_H_ */
+#endif /* XSLTANALYZER */

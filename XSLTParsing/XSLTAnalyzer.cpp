@@ -6,7 +6,7 @@
  */
 
 
-#include "XSLTParser.h"
+#include "XSLTAnalyzer.h"
 #include "XPathParser.h"
 
 
@@ -17,9 +17,6 @@ char const * xslTokDesc[MAXSYM] = {
 };
 
 
-XSLTParser::XSLTParser(ILexer * l):IParser(l) {
-	//tokenDescriptions = xsltTokDesc;
-}
 
 int getNumericVal(const String & s) {
 	int tmp = 0;
@@ -35,39 +32,44 @@ int getNumericVal(const String & s) {
 }
 
 /*
-String XSLTParser::matchAttribute(const parsingXML::Name& n) {
+String XSLTAnalyzer::matchAttribute(const parsingXML::Name& n) {
 	//TODO error handling
 	return node->getAttrByName(n.string());
 }
 
-String XSLTParser::matchAttribute(const String& n) {
+String XSLTAnalyzer::matchAttribute(const String& n) {
 	//TODO error handling
 	return node->getAttrByName(n);
 }*/
 
-bool XSLTParser::validateName(const Node * n, XSLSymbol t) {
+bool XSLTAnalyzer::validateName(const Node * n, XSLSymbol t) {
 	if ( n->getName().string() != xslTokDesc[t]) {
-		syntaxError("Blad skladniowy XSL:", t);
+		xsltError("Blad skladniowy XSL: "+ t, n);
 		return false;
 	}
 	return true;
 }
 
-XSLSymbol XSLTParser::matchXSLKeyword(const Name& n) {
+XSLSymbol XSLTAnalyzer::matchXSLKeyword(const Name& n) {
 	//TODO
 }
 
-String XSLTParser::requiredAttribute(const Node * n, XSLSymbol t) {
+void XSLTAnalyzer::xsltError(const String& msg, const Node * n) const {
+	std::cout << msg;
+	n->string();
+}
+
+String XSLTAnalyzer::requiredAttribute(const Node * n, XSLSymbol t) {
 	NodeVec result = n->getAttrByName(xslTokDesc[t]);
 	if (result.size()!=1) {
 		//TODO syntax error
-		syntaxError("Blad skladniowy XSL, wymagany atrybut:", t);
+		xsltError(String("Blad skladniowy XSL, wymagany atrybut: ") + xslTokDesc[t], n);
 		return String("");
 	}
 	return result[0]->string();
 }
 
-String XSLTParser::optionalAttribute(const Node *n, XSLSymbol t, String def_val) {
+String XSLTAnalyzer::optionalAttribute(const Node *n, XSLSymbol t, String def_val) {
 	NodeVec result = n->getAttrByName(xslTokDesc[t]);
 		if (result.size()==0) {
 			return def_val;
@@ -75,11 +77,9 @@ String XSLTParser::optionalAttribute(const Node *n, XSLSymbol t, String def_val)
 		return result[0]->string();
 	}
 
-//XSLSymbol XSLTParser::matchXSLKeyword(const Name& n) {
-//	//TODO uzupelnic cialo funkcji
-//}
 
-LocExpr * XSLTParser::parseXPath(const String& sequence) {
+
+LocExpr * XSLTAnalyzer::parseXPath(const String& sequence) {
 	ISource * src = new StringSource(sequence);
 	ILexer * lex = new parsingXPath::XPathLexer(src);
 	LocExpr * pe = parsingXPath::XPathParser(lex).Path();
@@ -93,7 +93,7 @@ LocExpr * XSLTParser::parseXPath(const String& sequence) {
 	return pe;
 }
 
-XPathExpr * XSLTParser::parseXPathExpr(const String& sequence) {
+XPathExpr * XSLTAnalyzer::parseXPathExpr(const String& sequence) {
 	ISource * src = new StringSource(sequence);
 	ILexer * l = new parsingXPath::XPathLexer(src);
 
@@ -110,7 +110,7 @@ XPathExpr * XSLTParser::parseXPathExpr(const String& sequence) {
 
 /*
 // 'order=' '"' (ASCENDING | DESCENDING) '"'
-OrderVal XSLTParser::matchOrderAttr() {
+OrderVal XSLTAnalyzer::matchOrderAttr() {
 	String o = matchNamedAttr("order",ORDER);
 	if(o=="ascending")
 		return ASCENDING;
@@ -124,7 +124,7 @@ OrderVal XSLTParser::matchOrderAttr() {
 }
 
 // 'data-type=' '"' (TEXT | NUMBER) '"'
-DataType XSLTParser::matchDataTypeAttr() {
+DataType XSLTAnalyzer::matchDataTypeAttr() {
 	String t = matchNamedAttr("data-type", DATATYPE);
 	if(t=="text")
 		return TEXT;
@@ -138,15 +138,9 @@ DataType XSLTParser::matchDataTypeAttr() {
 }
 */
 
-ParsedObject * XSLTParser::startParsing() {
-	//TODO do poprawy
-	Node * n;
-	XSLTStylesheet * set = Document(n);
-	return set;
-}
 
 // Document -> Prolog {Comment} Stylesheet
-XSLTStylesheet * XSLTParser::Document(const Node * n) {
+XSLTStylesheet * XSLTAnalyzer::Document(const Node * n) {
 	//XMLParser::Prolog(n);
 	//XMLParser::optionalComment(n);
 	//TODO find stylesheet among children of the root
@@ -154,14 +148,14 @@ XSLTStylesheet * XSLTParser::Document(const Node * n) {
 }
 
 // Stylesheet -> '<' STYLESHEET Version { Attribute } '>' { Comment } { Template { Comment} }'</' STYLESHEET '>'
-XSLTStylesheet * XSLTParser::Stylesheet(const Node * n) {
+XSLTStylesheet * XSLTAnalyzer::Stylesheet(const Node * n) {
 	validateName(n,STYLESHEET);
 	//TODO matchAttribute(parsingXML::Name("version"));
 
 	NodeVec templates = n->getAllChildren();
 	TemplateVec ret;//(templates.size(), NULL);
 
-	//std::transform(templates.begin(), templates.end(), ret.begin(), std::mem_fun(&XSLTParser::Template));
+	//std::transform(templates.begin(), templates.end(), ret.begin(), std::mem_fun(&XSLTAnalyzer::Template));
 
 	for(NodeVec::iterator it = templates.begin();it != templates.end();++it)
 		ret.push_back(Template(*it));
@@ -170,7 +164,7 @@ XSLTStylesheet * XSLTParser::Stylesheet(const Node * n) {
 }
 
 // Template -> '<' TEMPLATE (MATCH | NAME) '=' LITERAL ('priority' '=' NUMBER)? '>' Content '</ TEMPLATE '>'
-XSLTTemplate * XSLTParser::Template(const Node * n) {
+XSLTTemplate * XSLTAnalyzer::Template(const Node * n) {
 	String str = "";
 	LocExpr * ns = NULL;
 	int priority = 0;
@@ -182,7 +176,7 @@ XSLTTemplate * XSLTParser::Template(const Node * n) {
 	else if (optionalAttribute(n, TEMPLATENAME, "")!="")
 	{}
 	else {
-		//TODO syntaxError(przynajmniej jeden z argumentow musi zostac dopasowany);
+		//TODO xsltError(przynajmniej jeden z argumentow musi zostac dopasowany);
 		return NULL;
 	}
 	String priority_str = optionalAttribute(n,PRIORITY, "0.0");
@@ -191,16 +185,15 @@ XSLTTemplate * XSLTParser::Template(const Node * n) {
 	return new XSLTTemplate(ns, str, priority, l);
 }
 
-bool isNull(void * p) { return p==NULL; }
 
 
-InstructionVec XSLTParser::Content(const Node * n) {
+InstructionVec XSLTAnalyzer::Content(const Node * n) {
 	NodeVec nodes = n->getAllChildren();
 	InstructionVec ret;
 //	InstructionVec ret(nodes.size(), NULL);
 
 //	std::transform(nodes.begin(), nodes.end(),
-//					ret.begin(), std::mem_fun(&XSLTParser::TLI));
+//					ret.begin(), std::mem_fun(&XSLTAnalyzer::TLI));
 
 	for(NodeVec::iterator it = nodes.begin();it != nodes.end();++it)
 		ret.push_back(TLI(*it));
@@ -214,13 +207,13 @@ InstructionVec XSLTParser::Content(const Node * n) {
 }
 
 
-XSLText * XSLTParser::Text(const Node * n) {
+XSLText * XSLTAnalyzer::Text(const Node * n) {
 	String s = n->string();
 	return new XSLText(s);
 }
 
 // TLI -> ApplyTemplates | If | Choose | ForEach | ValueOf
-Instruction * XSLTParser::TLI(const Node * n) {
+Instruction * XSLTAnalyzer::TLI(const Node * n) {
 	if (n->type() == TEXTTYPE)
 		return Text(n);
 
@@ -237,7 +230,7 @@ Instruction * XSLTParser::TLI(const Node * n) {
 }
 
 //ApplyTemplates -> APPLYTEMPLATES (SELECT '=' '"' Path '"')? ( '/>' | '>' {'<' Sort} '</' APPLYTEMPLATES '>' )
-XSLApplyTemplates * XSLTParser::ApplyTemplates(const Node * n) {
+XSLApplyTemplates * XSLTAnalyzer::ApplyTemplates(const Node * n) {
 	LocExpr * selected = NULL;
 	SortVec sorts;
 
@@ -248,7 +241,7 @@ XSLApplyTemplates * XSLTParser::ApplyTemplates(const Node * n) {
 	if (nodes.size() == 0)
 		return new XSLApplyTemplates(selected);
 	for (int i = 0; i<nodes.size();++i) {
-		//TODO syntaxError("Nieobslugiwany typ instrukcji", symbol);
+		//TODO xsltError("Nieobslugiwany typ instrukcji", symbol);
 		sorts.push_back(Sort(nodes[i]));
 	}
 	return new XSLApplyTemplates(selected,sorts);
@@ -256,7 +249,7 @@ XSLApplyTemplates * XSLTParser::ApplyTemplates(const Node * n) {
 
 
 // Sort -> SORT (SelectE)? ( Order | Datatype )? '/>'
-XSLSort * XSLTParser::Sort(const Node * n) {
+XSLSort * XSLTAnalyzer::Sort(const Node * n) {
 	validateName(n,SORT);
 
 	String val = optionalAttribute(n, SELECT, ".");
@@ -269,14 +262,14 @@ XSLSort * XSLTParser::Sort(const Node * n) {
 	//TODO dodac mappingi
 	optionalAttribute(n, ORDER, "ascending");
 	optionalAttribute(n, DATATYPE, "text");
-	//		syntaxError("Nieoczekiwany symbol: ", symbol);
+	//		xsltError("Nieoczekiwany symbol: ", symbol);
 	//return 0;
 
 	return new XSLSort(selected,order,type);
 }
 
 // If -> IF TestE '>' Content '</' IF '>'
-XSLConditional * XSLTParser::IfClause(const Node * n) {
+XSLConditional * XSLTAnalyzer::IfClause(const Node * n) {
 	//matchXSLKeyword("if");
 	validateName(n,IFCLAUSE);
 	String val = requiredAttribute(n, TEST);
@@ -288,7 +281,7 @@ XSLConditional * XSLTParser::IfClause(const Node * n) {
 }
 
 // Choose -> CHOOSE '>' {'<' When } ('<' Otherwise)? '</' CHOOSE '>'
-XSLBranch * XSLTParser::Choose(const Node * n) {
+XSLBranch * XSLTAnalyzer::Choose(const Node * n) {
 	ConditionalVec conds;
 	InstructionVec otherwise;
 
@@ -310,7 +303,7 @@ XSLBranch * XSLTParser::Choose(const Node * n) {
 }
 
 //When -> WHEN TestE '>' Content '</' WHEN '>'
-XSLConditional * XSLTParser::When(const Node * n) {
+XSLConditional * XSLTAnalyzer::When(const Node * n) {
 	validateName(n, WHEN);
 	String val = requiredAttribute(n, TEST);
 	XPathExpr * expr = parseXPathExpr(val);
@@ -319,7 +312,7 @@ XSLConditional * XSLTParser::When(const Node * n) {
 }
 
 // Otherwise -> OTHERWISE '>' Content '</' OTHERWISE '>'
-InstructionVec XSLTParser::Otherwise(const Node * n) {
+InstructionVec XSLTAnalyzer::Otherwise(const Node * n) {
 	validateName(n, OTHERWISE);
 	InstructionVec ret = Content(n);
 	return ret;
@@ -334,7 +327,7 @@ bool isSort(const Instruction* i) {
 }
 
 //ForEach -> FOREACH SelectNS '>' ForEachContent '</' FOREACH '>'
-XSLRepetition * XSLTParser::ForEach(const Node * n) {
+XSLRepetition * XSLTAnalyzer::ForEach(const Node * n) {
 	validateName(n, FOREACH);
 	String val = requiredAttribute(n, SELECT);
 	LocExpr * xPath = parseXPath(val);
@@ -355,7 +348,7 @@ XSLRepetition * XSLTParser::ForEach(const Node * n) {
 
 	//sprawdza czy po napotkaniu takiej instrukcji pojawia sie jeszcze kolejny sort
 	if(std::find_if(it,list.end(),isSort)!=list.end()) {
-		//syntaxError wszystkie sorty powinny pojawic sie przed innymi instrukcjami
+		//xsltError wszystkie sorty powinny pojawic sie przed innymi instrukcjami
 	}
 	size = list.end()-it;
 	InstructionVec others(size, NULL);
@@ -366,7 +359,7 @@ XSLRepetition * XSLTParser::ForEach(const Node * n) {
 }
 
 // ValueOf -> VALUEOF SelectE '/>'
-XSLValueOf * XSLTParser::ValueOf(const Node * n) {
+XSLValueOf * XSLTAnalyzer::ValueOf(const Node * n) {
 	validateName(n, VALUEOF);
 	String val = requiredAttribute(n, SELECT);
 	//XPathExpr * xPath = matchExpression("select");
@@ -374,7 +367,7 @@ XSLValueOf * XSLTParser::ValueOf(const Node * n) {
 }
 
 //Complex -> Name { Attribute } ( '/>' | '>' Content '</' Name '>')
-XSLComplex * XSLTParser::ComplexInstruction(const Node * n) {
+XSLComplex * XSLTAnalyzer::ComplexInstruction(const Node * n) {
 	//TODO ewentualnie sprawdzic czy nie ma slow zakazanych, wpp przepisac bez zmian
 	InstructionVec content = Content(n);
 	return new XSLComplex(n->getName(), n->getAllAttrs(), content);
