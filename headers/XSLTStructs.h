@@ -172,8 +172,6 @@ public:
 
 //klasa sort implementuje porzadek rosnacy i malejacy
 //oraz interpretuje typ sortowania jako liczbowy lub leksykograficzny
-//enum OrderVal {ASCENDING, DESCENDING};
-//enum DataType {TEXT, NUMBER};
 
 class XSLSort : public Instruction {
 //poniewaz do sortowania po wielu kluczach wykorzystuje stable_sort z STLa potrzebny mi byl predykat binarny

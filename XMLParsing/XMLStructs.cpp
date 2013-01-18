@@ -130,7 +130,7 @@ void indent(const int & depth, std::ostream& os) {
 }
 
 void ElementNode::print(int depth, std::ostream& os) const{
-	indent(depth, os); os << '<' << name.string();
+	indent(depth, os); os << '<' << name.string() << " " << number;
 	for(NodeVec::const_iterator it = attrs.begin();it!=attrs.end();++it) {
 		os << " ";
 		(*it)->print(0, os);

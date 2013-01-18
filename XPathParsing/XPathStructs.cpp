@@ -404,9 +404,9 @@ bool XPath::match(Node * contextNode) const {
 
 void XPathLocationExpression::print()const {
 	std::vector<XPath>::const_iterator it;
-	for(it = paths.begin();it!=paths.end();++it)
-		it->print();
-	//	std::for_each(paths.begin(),paths.end(),std::mem_fun(&XPath::print));
+	//for(it = paths.begin();it!=paths.end();++it)
+	//	it->print();
+		std::for_each(paths.begin(),paths.end(),std::mem_fun_ref(&XPath::print));
 }
 
 

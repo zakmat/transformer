@@ -93,8 +93,8 @@ XSLTTemplate::~XSLTTemplate() {
 }
 
 void XSLTTemplate::print() {
-	std::cout << "template: Priorytet: " << priority << " Nazwa: " << name
-			<< " wzorzec dopasowania: " << pattern <<'\n';
+	std::cout << "TEMPLATE: priority: " << priority << " name: " << name
+			<< " pattern: "; pattern->print();
 			pattern->print();
 	for(InstructionVec::iterator it = instructions.begin();it!=instructions.end();++it) {
 		(*it)->print(1);
@@ -150,7 +150,7 @@ XSLTTemplate * XSLTStylesheet::getDefaultTemplate() const{
 }
 
 void XSLApplyTemplates::print(int d) {
-	indent(d); std::cout << "APPLY "<< selected << '\n';
+	indent(d); std::cout << "APPLY "; selected->print();
 }
 
 XSLApplyTemplates::XSLApplyTemplates(const XSLApplyTemplates& rhs) {
@@ -180,7 +180,7 @@ void XSLBranch::print(int d) {
 }
 
 XSLBranch::XSLBranch(ConditionalVec cB, InstructionVec dB):
-		conditionalBranches(cB), defBranch(dB) {
+	conditionalBranches(cB), defBranch(dB) {
 	isDefaultDefined = (dB.size()!=0);
 }
 
@@ -222,7 +222,7 @@ void XSLComplex::print(int d) {
 	indent(d); std::cout <<"COMPLEX " << name.string() << '\n';
 	for(InstructionVec::iterator it = children.begin();it!=children.end();++it) {
 		(*it)->print(d+1);
-		std::cout << '\n';
+//std::cout << '\n';
 	}
 }
 XSLComplex::XSLComplex(const XSLComplex& rhs) {
@@ -238,10 +238,10 @@ XSLComplex::~XSLComplex() {
 }
 
 void XSLRepetition::print(int d) {
-	indent(d); std::cout <<"REPETITION" << selected << '\n';
+	indent(d); std::cout <<"REPETITION "; selected->print(); std::cout << '\n';
 	for(InstructionVec::iterator it = body.begin(); it!=body.end(); ++it) {
 		(*it)->print(d+1);
-		std::cout << '\n';
+		//std::cout << '\n';
 	}
 }
 
@@ -263,7 +263,7 @@ XSLRepetition::~XSLRepetition() {
 }
 
 void XSLSort::print(int d) {
-	indent(d); std::cout << "sort "<< criterion << '\n';
+	indent(d); std::cout << "SORT "<< criterion << '\n';
 }
 
 XSLSort::XSLSort(const XSLSort& rhs) {
@@ -281,11 +281,11 @@ XSLSort::~XSLSort() {
 }
 
 void XSLText::print(int d) {
-	indent(d); std::cout << "TEXT "<< text;
+	indent(d); std::cout << "TEXT "<< text << '\n';
 }
 
 void XSLValueOf::print(int d) {
-	indent(d); std::cout << "value-of "<< selected;
+	indent(d); std::cout << "VALUE-OF " << selected << '\n';
 }
 
 XSLValueOf::XSLValueOf(const XSLValueOf& rhs) {
@@ -486,7 +486,7 @@ bool Context::test (XPathExpr * e) const {
 }
 
 //funkcja sortuje zbior wezlow zgodnie z wytycznymi dostarczonymi przez wektor instrukcji typu XSLSort
-void Context::sort(const SortVec& sorts) {
+void Context::	sort(const SortVec& sorts) {
 	//uzywam stable_sort i przechodze przez sorts od konca
 	//co pozwala sortowac zbior wezlow po kilku kluczach np. najpierw first, potem last name
 	for(SortVec::const_reverse_iterator rit = sorts.rbegin(); rit<sorts.rend(); rit++) {
@@ -508,10 +508,18 @@ NodeVec Context::instantiate(const InstructionVec & v) const {
 //funkcja wykorzystywana przez for-each,
 //wykonuje sekvencje instrukcji v dla kazdego wezla z biezacej listy
 NodeVec Context::instantiateForAll(const InstructionVec &v) {
+	std::cout << "wypisuje nowy template";
+	for(InstructionVec::const_iterator it = v.begin();it!=v.end();++it) {
+		(*it)->print(0);
+	}
 	NodeVec ret;
 	position = 0;
 	while (position<currentList.size()) {
-		NodeVec temp = instantiate(v);
+
+		NodeVec temp = instantiate(v.at(position));
+		for(NodeVec::iterator it = temp.begin();it!=temp.end();++it) {
+				(*it)->print(0,std::cout);
+		}
 		ret.insert(ret.end(),temp.begin(),temp.end());
 		position++;
 	}
