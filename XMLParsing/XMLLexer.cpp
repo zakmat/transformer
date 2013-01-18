@@ -8,8 +8,6 @@
 
 #include "XMLLexer.h"
 
-namespace parsingXML {
-
 bool XMLLexer::isWhiteSpaceChar(const Char c) const {
 	return c == 0x20 || c==0x09 || c==0x0a || c==0x0d;
 }
@@ -24,7 +22,7 @@ Token XMLLexer::matchNextToken() {
 
 	//sprawdzamy czy dokument zrodlowy nie zostal juz w pelni zeskanowany
 	if(c==0)
-		return Token(MAXSYM,"");
+		return Token(MAXSYMXML,"");
 
 	if(isWhiteSpace(c)) {
 		seqSoFar.append(1,c);
@@ -141,4 +139,3 @@ String XMLLexer::matchComment() {
 	return comment;
 }
 
-}

@@ -29,7 +29,7 @@ class XMLLexer: public ILexer {
 	Token recognizeMarkupEnding(Char firstChar);
 public:
 	XMLLexer(ISource * src): ILexer(src) {};
-	virtual Token matchNextToken();
+	Token matchNextToken();
 	int getErrSymbol() {return MAXSYMXML;}
 };
 
