@@ -95,6 +95,7 @@ XSLTTemplate::~XSLTTemplate() {
 void XSLTTemplate::print() {
 	std::cout << "template: Priorytet: " << priority << " Nazwa: " << name
 			<< " wzorzec dopasowania: " << pattern <<'\n';
+			pattern->print();
 	for(InstructionVec::iterator it = instructions.begin();it!=instructions.end();++it) {
 		(*it)->print(1);
 		std::cout << '\n';
@@ -196,6 +197,7 @@ XSLBranch::~XSLBranch() {
 
 void XSLConditional::print(int d) {
 	indent(d); std::cout <<"CONDITIONAL" << expression << '\n';
+	//expression->print();
 	for(InstructionVec::iterator it = instructions.begin();it!=instructions.end();++it) {
 		(*it)->print(d+1);
 		std::cout << '\n';

@@ -125,8 +125,11 @@ bool XPathExpression::boolean(Node * contextNode) const {
 		}
 		//ponizsze 2 przypadki obsluguja sytuacje gry jeden z operandow jest zbiorem wezlow
 		//wowczas porownanie nastepuje z kazdym z wezlow z osobna (wezly konwertowane sa na liczby)
-		else if(left->isLocationExpr())
-			return ((XPathLocationExpression*)left)->compareWithOtherExpr(right, contextNode);
+		else if(left->isLocationExpr()) {
+			bool wynik = ((XPathLocationExpression*)left)->compareWithOtherExpr(right, contextNode);
+			std::cout << wynik << '\n';
+			return wynik;
+		}
 		else
 			return ((XPathLocationExpression*)right)->compareWithOtherExpr(left, contextNode);
 			//TODO napisać test case w którym tylko jeden z operandów jest zbiorem ścieżek
@@ -308,6 +311,7 @@ String XPathLocationExpression::string(Node * contextNode) const {
 }
 
 double XPathLocationExpression::number(Node * contextNode) const {
+	std::cout << "postep " << string(contextNode);
 	return getNumericValue(string(contextNode));
 }
 
@@ -315,10 +319,11 @@ bool XPathLocationExpression::compareWithOtherExpr(XPathExpression* other, Node 
 	double num = other->number(contextNode);
 	NodeVec result = this->evaluate(contextNode);
 
-	for(NodeVec::iterator it = result.begin(); it!=result.end(); it++)
+	for(NodeVec::iterator it = result.begin(); it!=result.end(); it++) {
+		std::cout << (*it)->numberValue() << ' ';
 		if(compareNumbers((*it)->numberValue(),num))
 			return true;
-
+	}
 	return false;
 }
 
@@ -345,7 +350,7 @@ NodeVec XPathLocationExpression::evaluate(Node * contextNode) const {
 		NodeVec temp = it->evaluate(contextNode);
 		ret = mergeSets(ret,temp);
 	}
-
+	print2(ret);
 	return ret;
 }
 

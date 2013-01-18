@@ -90,6 +90,7 @@ String XSLTAnalyzer::optionalAttribute(const Node *n, XSLSymbol t, String def_va
 
 
 LocExpr * XSLTAnalyzer::parseXPath(const String& sequence) {
+	std::cout << "sequence" << sequence;
 	ISource * src = new StringSource(sequence);
 	ILexer * lex = new parsingXPath::XPathLexer(src);
 	LocExpr * pe = parsingXPath::XPathParser(lex).Path();
@@ -104,6 +105,8 @@ LocExpr * XSLTAnalyzer::parseXPath(const String& sequence) {
 }
 
 XPathExpr * XSLTAnalyzer::parseXPathExpr(const String& sequence) {
+	std::cout << "expr " << sequence;
+
 	ISource * src = new StringSource(sequence);
 	ILexer * l = new parsingXPath::XPathLexer(src);
 

@@ -65,6 +65,7 @@ int Node::counter = 0;
 //funkcja sprawdzajaca czy wartosc wezla jest numeryczna
 double Node::numberValue()const {
 	String s = string();
+	std::cout << s;
 	if(s.compare("Infinity")==0)
 		return std::numeric_limits<double>::infinity();
 	else if(s.compare("-Infinity")==0)
@@ -152,13 +153,15 @@ void AttributeNode::print(int depth, std::ostream& os) const {
 }
 
 String ElementNode::string() const {
-	String s = getName().string();
-	for(NodeVec::const_iterator it=attrs.begin(); it!=attrs.end();++it) {
-		s.append((*it)->string());
-		s.append(" ");
-	}
-	//wycinamy ostatnia spacje
-	s.erase(s.size()-1);
+	String s =
+
+//			getName().string();
+//	for(NodeVec::const_iterator it=attrs.begin(); it!=attrs.end();++it) {
+//		s.append((*it)->string());
+//		s.append(" ");
+//	}
+//	//wycinamy ostatnia spacje
+//	s.erase(s.size()-1);
 	return s;
 }
 
