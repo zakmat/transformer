@@ -150,10 +150,11 @@ XSLTTemplate * XSLTStylesheet::getDefaultTemplate() const{
 }
 
 void XSLApplyTemplates::print(int d) {
-	indent(d); std::cout << "APPLY "; selected->print();
+	indent(d); std::cout << "APPLY ";// selected->print();
 }
 
 XSLApplyTemplates::XSLApplyTemplates(const XSLApplyTemplates& rhs) {
+	type = rhs.type;
 	if(rhs.selected)
 		selected = new LocExpr(*rhs.selected);
 	else
@@ -181,10 +182,12 @@ void XSLBranch::print(int d) {
 
 XSLBranch::XSLBranch(ConditionalVec cB, InstructionVec dB):
 	conditionalBranches(cB), defBranch(dB) {
+	type = BRANCHINS;
 	isDefaultDefined = (dB.size()!=0);
 }
 
 XSLBranch::XSLBranch(const XSLBranch& rhs) {
+	type = rhs.type;
 	isDefaultDefined = rhs.isDefaultDefined;
 	deepCopy(rhs.conditionalBranches, conditionalBranches);
 	deepCopy(rhs.defBranch, defBranch);
@@ -205,6 +208,7 @@ void XSLConditional::print(int d) {
 }
 
 XSLConditional::XSLConditional(const XSLConditional& rhs) {
+	type = rhs.type;
 	if(rhs.expression)
 		expression = new XPathExpr(*rhs.expression);
 	else
@@ -226,6 +230,7 @@ void XSLComplex::print(int d) {
 	}
 }
 XSLComplex::XSLComplex(const XSLComplex& rhs) {
+	type = rhs.type;
 	name = rhs.name;
 	deepCopy(rhs.attrs,attrs);
 	deepCopy(rhs.children,children);
@@ -246,6 +251,7 @@ void XSLRepetition::print(int d) {
 }
 
 XSLRepetition::XSLRepetition(const XSLRepetition& rhs) {
+	type = rhs.type;
 	if(rhs.selected)
 		selected = new LocExpr(*rhs.selected);
 	else
@@ -267,8 +273,9 @@ void XSLSort::print(int d) {
 }
 
 XSLSort::XSLSort(const XSLSort& rhs) {
-	order = rhs.order;
 	type = rhs.type;
+	order = rhs.order;
+	datatype = rhs.datatype;
 	if(rhs.criterion)
 		criterion = new XPathExpr(*rhs.criterion);
 	else
@@ -289,6 +296,7 @@ void XSLValueOf::print(int d) {
 }
 
 XSLValueOf::XSLValueOf(const XSLValueOf& rhs) {
+	type = rhs.type;
 	if(rhs.selected)
 		selected = new XPathExpr(*rhs.selected);
 	else selected = NULL;
@@ -403,7 +411,7 @@ std::vector<String> XSLSort::extractKeys(Context & c)const {
 	 * czyli jako klucz stosujemy string-value biezacego kontekstu
 	 */
 	if(criterion == NULL) {
-		for(int i=0;i<c.getSize();++i) {
+		for(unsigned i=0;i<c.getSize();++i) {
 			c.setPosition(i);
 			ret.push_back(c.getCurrent()->string());
 		}
@@ -412,7 +420,7 @@ std::vector<String> XSLSort::extractKeys(Context & c)const {
 	 * w przeciwnym wypadku obliczamy string-value na podstawie parametru
 	 */
 	else {
-		for(int i=0;i<c.getSize();++i) {
+		for(unsigned i=0;i<c.getSize();++i) {
 			c.setPosition(i);
 			ret.push_back(criterion->string(c.getCurrent()));
 		}
@@ -423,13 +431,13 @@ std::vector<String> XSLSort::extractKeys(Context & c)const {
 
 //funkcja porownuje dwa klucze, wykorzystujac przy tym parametry order i data-type
 bool XSLSort::compare(const String & a, const String &b)const {
-	if(order == ASC && type == TEXT) {
+	if(order == ASC && datatype == TEXT) {
 		return a.compare(b)<0;
 	}
-	else if((order == DESC) && (type==TEXT)) {
+	else if((order == DESC) && (datatype==TEXT)) {
 		return b < a;
 	}
-	else if((order == ASC) && (type == NUMBER)) {
+	else if((order == ASC) && (datatype == NUMBER)) {
 		return getNumericValue(a) < getNumericValue(b);
 	}
 	else {
@@ -464,10 +472,10 @@ NodeVec XSLValueOf::evaluate(const Context & context) const{
 Node * Context::getCurrent() const {
 	return currentList.at(position);
 }
-int Context::getPosition() const {
+unsigned Context::getPosition() const {
 	return position;
 }
-int Context::getSize() const {
+unsigned Context::getSize() const {
 	return currentList.size();
 }
 NodeVec Context::getCurrentList() const {
@@ -508,19 +516,14 @@ NodeVec Context::instantiate(const InstructionVec & v) const {
 //funkcja wykorzystywana przez for-each,
 //wykonuje sekvencje instrukcji v dla kazdego wezla z biezacej listy
 NodeVec Context::instantiateForAll(const InstructionVec &v) {
-	std::cout << "wypisuje nowy template";
-	for(InstructionVec::const_iterator it = v.begin();it!=v.end();++it) {
-		(*it)->print(0);
-	}
+//	for(InstructionVec::const_iterator it = v.begin();it!=v.end();++it) {
+//		(*it)->print(0);
+//	}
 	NodeVec ret;
 	position = 0;
 	while (position<currentList.size()) {
 
 		NodeVec temp = instantiate(v);
-		std::cout << "wypisuje temp aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa " << temp.size();
-//		for(NodeVec::iterator it = temp.begin();it!=temp.end();++it) {
-//				(*it)->print(0,std::cout);
-//		}
 		ret.insert(ret.end(),temp.begin(),temp.end());
 		position++;
 	}

@@ -57,11 +57,13 @@ typedef std::vector<XSLConditional *> ConditionalVec;
 typedef std::vector<XSLSort *> SortVec;
 
 
+enum InsType  {SORTINS,FORINS, IFINS, COMPLEXINS, VALUEINS, TEXTINS, APPLYINS, BRANCHINS};
+
 
 //klasa reprezentuje instrukcje procesora XSLT
 class Instruction {
 protected:
-	XSLSymbol instrType;
+	InsType type;
 public:
 	void indent(const int & depth) {
 		for(int i=0;i<depth;++i)
@@ -70,7 +72,7 @@ public:
 	//tylko na potrzeby debuggingu o ile dla drzew xml wypisany obiekt wyglada calkiem znosnie,
 	//o tyle tu w ogole
 	virtual void print(int depth) = 0;
-	XSLSymbol type() const {return instrType; };
+	InsType getType() const {return type; };
 	//napotkana instrukcja jest realizowana w kontekscie biezacego wezla
 	virtual NodeVec evaluate(const Context & context)const = 0;
 	virtual Instruction* clone() const = 0;
@@ -129,7 +131,7 @@ class XSLText : public Instruction {
 	String text;
 public:
 	void print(int d);
-	XSLText(const String & _s = String()): text(_s) {};
+	XSLText(const String & _s = String()): text(_s) {type = TEXTINS;};
 	virtual XSLText* clone() const { return new XSLText(*this);};
 	NodeVec evaluate(const Context & context)const;
 };
@@ -141,7 +143,7 @@ class XSLValueOf : public Instruction {
 
 public:
 	void print(int d);
-	XSLValueOf(XPathExpr * ns) : selected(ns) {};
+	XSLValueOf(XPathExpr * ns) : selected(ns) {type=VALUEINS;};
 	XSLValueOf(const XSLValueOf& rhs);
 	virtual XSLValueOf * clone() const { return new XSLValueOf(*this);};
 	~XSLValueOf() { if(selected) delete selected; }
@@ -161,7 +163,7 @@ class XSLRepetition : public Instruction {
 
 public:
 	void print(int d);
-	XSLRepetition(LocExpr * ns, const SortVec & s, const InstructionVec & b) : selected(ns), sorts(s),body(b) {};
+	XSLRepetition(LocExpr * ns, const SortVec & s, const InstructionVec & b) : selected(ns), sorts(s),body(b) {type=FORINS;};
 	XSLRepetition(const XSLRepetition& rhs);
 	virtual XSLRepetition* clone() const { return new XSLRepetition(*this);};
 	~XSLRepetition();
@@ -192,7 +194,7 @@ class XSLSort : public Instruction {
 	//moze to byc dowolne wyrazenie XPath
 	XPathExpr * criterion;
 	XSLSymbol order;
-	XSLSymbol type;
+	XSLSymbol datatype;
 
 
 	String string(const NodeVec& v) const;
@@ -200,10 +202,10 @@ class XSLSort : public Instruction {
 	bool compare(const String & a, const String &b) const;
 public:
 	XSLSymbol getOrder()const { return order;};
-	XSLSymbol getType() const { return type; };
+	XSLSymbol getDataType() const { return datatype; };
 	void print(int d);
 	XSLSort(XPathExpr * _s, XSLSymbol _o = ASC, XSLSymbol _t = TEXT):
-		criterion(_s), order(_o), type(_t) {};
+		criterion(_s), order(_o), datatype(_t) {type=SORTINS;};
 	XSLSort(const XSLSort& rhs);
 	virtual XSLSort* clone() const { return new XSLSort(*this);};
 	~XSLSort();
@@ -228,7 +230,7 @@ class XSLApplyTemplates : public Instruction {
 	SortVec sorts;
 public:
 	void print(int d);
-	XSLApplyTemplates(LocExpr * s = NULL, const SortVec& sorts_= SortVec()): selected(s), sorts(sorts_) {};
+	XSLApplyTemplates(LocExpr * s = NULL, const SortVec& sorts_= SortVec()): selected(s), sorts(sorts_) {type=APPLYINS;};
 	XSLApplyTemplates(const XSLApplyTemplates& rhs);
 	virtual XSLApplyTemplates* clone() const { return new XSLApplyTemplates(*this);};
 	~XSLApplyTemplates();
@@ -246,7 +248,7 @@ public:
 	InstructionVec getBody() const { return instructions; };
 	void print(int d);
 	XSLConditional(XPathExpr * expr, const InstructionVec & i):
-		expression(expr), instructions(i) {};
+		expression(expr), instructions(i) {type = IFINS;};
 	virtual XSLConditional* clone() const { return new XSLConditional(*this);};
 	XSLConditional(const XSLConditional& rhs);
 	~XSLConditional();
@@ -297,7 +299,7 @@ public:
 	void print(int d);
 	XSLComplex(const Name & _name, const NodeVec & _attrs,
 			const InstructionVec & _children = InstructionVec()):
-				name(_name), attrs(_attrs), children(_children) {};
+				name(_name), attrs(_attrs), children(_children) {type=COMPLEXINS;};
 	virtual XSLComplex* clone() const { return new XSLComplex(*this);};
 	XSLComplex(const XSLComplex& rhs);
 	~XSLComplex() ;
@@ -313,14 +315,14 @@ public:
  */
 class Context {
 	XSLTStylesheet * stylesheet;
-	int position;
+	unsigned position;
 	NodeVec currentList;
 public:
 	Context(const NodeVec& l, XSLTStylesheet * s): stylesheet(s), position(0), currentList(l) {};
 	Node * getCurrent() const;
-	int getPosition() const;
+	unsigned getPosition() const;
 	void setPosition(int i) {position = i; };
-	int getSize() const;
+	unsigned getSize() const;
 	NodeVec getCurrentList() const;
 	void setCurrentList(const NodeVec& v) { currentList = v; };
 	NodeVec select (LocExpr * s) const;

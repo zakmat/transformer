@@ -3,7 +3,7 @@
 <catalog>
 	<cd>
 		<title><![CDATA[
-Wszystko<> jest tekstem]]></title>
+CDATA> przyjmuje ]]>wszystko</title>
 		<artist>Bob Dylan</artist>
 		<country>USA</country>
 		<company>Columbia</company>

@@ -46,7 +46,7 @@ XMLTree * Transformer::parseXML(ISource * document) const {
 	XMLTree * tree = (XMLTree *) xmlparser->startParsing();
 	std::cout << "Zakonczono parsowanie dokumentu zrodlowego" << std::endl;
 
-	tree->printToConsole();
+	//tree->printToConsole();
 
 	//parsingXML::XMLTree * source = (parsingXML::XMLTree *) pt;
 
@@ -68,7 +68,7 @@ void Transformer::loadStyleSheet(char * filename) {
 
 	transformations = parseXSL(xsldoc);
 	styleErrsDetected = xsldoc->countErrors();
-	transformations->print();
+	//transformations->print();
 
 	delete xsldoc;
 

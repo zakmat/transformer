@@ -41,8 +41,6 @@ bool XSLTAnalyzer::validateName(const Node * n, XSLSymbol t) {
 }
 
 XSLSymbol XSLTAnalyzer::matchXSLKeyword(const Name& n) {
-	//TODO
-	std::cout << "match_keyword " << n.string() << '\n';
 	for (int i = 0; i<KEYWORDSNUM;i++) {
 		if (keywords[i].key==n.string())
 			return keywords[i].symbol;
@@ -197,7 +195,7 @@ XSLApplyTemplates * XSLTAnalyzer::ApplyTemplates(const Node * n) {
 	NodeVec nodes = n->getAllChildren();
 	if (nodes.size() == 0)
 		return new XSLApplyTemplates(selected);
-	for (int i = 0; i<nodes.size();++i) {
+	for (unsigned i = 0; i<nodes.size();++i) {
 		//TODO xsltError("Nieobslugiwany typ instrukcji", symbol);
 		sorts.push_back(Sort(nodes[i]));
 	}
@@ -239,7 +237,7 @@ XSLBranch * XSLTAnalyzer::Choose(const Node * n) {
 //	validateName(n, CHOOSE);
 
 	NodeVec nodes = n->getAllChildren();
-	for(int i = 0; i<nodes.size();++i) {
+	for(unsigned i = 0; i<nodes.size();++i) {
 		if(validateName(nodes[i],WHEN))
 			conds.push_back(When(nodes[i]));
 		else if(i == nodes.size()-1 && validateName(nodes[i],OTHERWISE))
@@ -269,7 +267,7 @@ InstructionVec XSLTAnalyzer::Otherwise(const Node * n) {
 }
 
 bool isNotSort(const Instruction* i) {
-	return i->type()!=SORT;
+	return i->getType()!=SORTINS;
 }
 
 bool isSort(const Instruction* i) {
@@ -282,14 +280,13 @@ XSLRepetition * XSLTAnalyzer::ForEach(const Node * n) {
 	String val = requiredAttribute(n, SELECT);
 	LocExpr * xPath = parseXPath(val);
 
-	NodeVec nodes = n->getAllChildren();
+	//NodeVec nodes = n->getAllChildren();
 
 	InstructionVec list = Content(n);
 
 	//znajduje pierwsza instrukcje nie bedaca sortem
 	InstructionVec::iterator it = std::find_if(list.begin(),list.end(),isNotSort);
 
-	int size = it - list.begin();
 	SortVec sorts;//(size,NULL);
 	//std::copy(list.begin(),it,sorts.begin());
 	for(InstructionVec::iterator it2 = list.begin();it2!=it;++it2)
@@ -298,12 +295,11 @@ XSLRepetition * XSLTAnalyzer::ForEach(const Node * n) {
 
 	//sprawdza czy po napotkaniu takiej instrukcji pojawia sie jeszcze kolejny sort
 	if(std::find_if(it,list.end(),isSort)!=list.end()) {
-		//xsltError wszystkie sorty powinny pojawic sie przed innymi instrukcjami
+		xsltError("Instrukcje sort powinny wystepowac w pierwszej kolejnosci", n);
 	}
-	size = list.end()-it;
-	InstructionVec others(size, NULL);
+	int bsize = list.end()-it;
+	InstructionVec others(bsize, NULL);
 	std::copy(it,list.end(),others.begin());
-
 
 	return new XSLRepetition(xPath, sorts, others);
 }
